@@ -46,6 +46,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="COBieLiteTests.cs" />
+    <Compile Include="CobieLiteUKValidationExtraTests.cs" />
     <Compile Include="CobieLiteUKValidationTests.cs" />
     <Compile Include="DPoWToCOBieLiteUKTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -118,9 +119,16 @@
     <None Include="TestFiles\ValidationReport.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ValidationFiles\Lakeside_Restaurant-stage0-COBie.json" />
+    <None Include="ValidationFiles\Lakeside_Restaurant-stage1-COBie.json" />
+    <None Include="ValidationFiles\Lakeside_Restaurant-stage2-COBie.json" />
+    <None Include="ValidationFiles\Lakeside_Restaurant-stage3-COBie.json" />
+    <None Include="ValidationFiles\Lakeside_Restaurant-stage4-COBie.json" />
+    <None Include="ValidationFiles\Lakeside_Restaurant-stage5-COBie.json" />
     <None Include="ValidationFiles\Lakeside_Restaurant-stage6-COBie.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="ValidationFiles\Lakeside_Restaurant-stage7-COBie.json" />
     <None Include="ValidationFiles\Lakeside_Restaurant.dpow">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

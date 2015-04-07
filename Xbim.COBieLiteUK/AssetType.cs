@@ -7,6 +7,21 @@ using System.Threading.Tasks;
 
 namespace Xbim.COBieLiteUK
 {
+    public static class AssetTypeExtensions
+    {
+        static public IEnumerable<AssetType> Clone(this IEnumerable<AssetType> types)
+        {
+            // todo: retain jsonSerialiser for faster execution
+            if (types == null)
+                yield break;
+            foreach (var assetType in types)
+            {
+                yield return Facility.Clone(assetType);
+            }
+        }
+    }
+
+
     public partial class AssetType
     {
         public AssetPortability AssetTypeEnum
@@ -70,6 +85,21 @@ namespace Xbim.COBieLiteUK
                 }
             if (AssemblyOf != null)
                 yield return AssemblyOf;
+        }
+
+        internal override IEnumerable<IEntityKey> GetKeys()
+        {
+            foreach (var key in base.GetKeys())
+                yield return key;
+            if (Manufacturer != null)
+                yield return Manufacturer;
+            if (Warranty != null)
+            {
+                if (Warranty.GuarantorLabor != null)
+                    yield return Warranty.GuarantorLabor;
+                if (Warranty.GuarantorParts != null)
+                    yield return Warranty.GuarantorParts;
+            }
         }
     }
 }
