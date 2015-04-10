@@ -655,7 +655,7 @@ namespace Xbim.COBieLiteUK
             }
             if (Zones != null)
             {
-                foreach (var zone in Zones.Where(z => z.Spaces == null || !z.Spaces.Any()))
+                foreach (var zone in Zones.Where(z => z.Spaces == null || !z.Spaces.Any()).ToArray())
                 {
                     logger.WriteLine("Zone {0} doesn't have any space assigned.", zone.Name);
                     if (fixIfPossible)

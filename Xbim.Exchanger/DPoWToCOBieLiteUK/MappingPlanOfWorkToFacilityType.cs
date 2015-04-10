@@ -95,12 +95,7 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
             target.Description = sFacility.Description;
             target.Name = sFacility.Name;
             var sFacilityCategory = sFacility.GetCategory(source);
-<<<<<<< HEAD
-            if (sFacilityCategory != null) target.Categories = new List<Category> { new Category { Code = sFacilityCategory.ClassificationCode } };
-=======
-            if (sFacilityCategory != null)
-                target.Categories = new List<Category> { new Category { Code = sFacilityCategory.ClassificationCode} };
->>>>>>> remotes/upstream/develop
+            if (sFacilityCategory != null) target.Categories = new List<Category> { new Category { Code = sFacilityCategory.ClassificationCode} };
             if (!String.IsNullOrWhiteSpace(sFacility.SiteName))
                 target.Site = new Site
                 {
