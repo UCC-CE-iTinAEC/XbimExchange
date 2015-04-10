@@ -311,11 +311,7 @@ namespace Tests
             facility.WriteCobie(xlsxFile, out msg);
 
             var facility2 = Facility.ReadXml(xmlFile);
-            var facility3 = Facility.ReadJson(jsonFile);
-
-            var cloned = facility.Attributes.FirstOrDefault().Clone();
-
-
+            var facility3 = Facility.ReadJson(jsonFile);    
         }
 
         [TestMethod]
@@ -374,15 +370,6 @@ namespace Tests
             var facility = Facility.ReadCobie("OBN1-COBie-UK-2014.xlsx", out msg);
             facility.WriteCobie("..\\..\\OBN1-COBie-UK-2014_plain.xlsx", out msg, "UK2012", false);
         }
-
-        //[TestMethod]
-        //[DeploymentItem("TestFiles\\OBN1-COBie-UK-2014.xlsx")]
-        //public void WritingSpreadsheetFromJson()
-        //{
-        //    string msg;
-        //    var facility = Facility.ReadJson(@"c:\Users\mxfm2\Dropbox\Martin\NBS_LakesideRestaurant_EcoBuild2015_Revit2014_WithZones_DPoW.json");
-        //    facility.WriteCobie("..\\..\\Lakeside.xlsx", out msg);
-        //}
 
         [TestMethod]
         public void DeepSearchTest()
@@ -508,9 +495,14 @@ namespace Tests
 
                 foreach (var facilityType in facilities)
                 {
+                    var log = new StringWriter();
+                    facilityType.ValidateUK2012(log, true);
+
                     string msg;
                     facilityType.WriteJson(jsonFile, true);
                     facilityType.WriteCobie("..\\..\\Lakeside_Restaurant.xlsx", out msg, "UK2012", true);
+
+                    
                     break;
                 }
             }
