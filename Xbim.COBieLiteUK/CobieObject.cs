@@ -257,7 +257,7 @@ namespace Xbim.COBieLiteUK
                 var cell = row.GetCell(cellIndex) ?? row.CreateCell(cellIndex);
 
                 //set default column style
-                cell.CellStyle = sheet.GetColumnStyle(cellIndex);
+                if (sheet.GetColumnStyle(cellIndex) != null) cell.CellStyle = sheet.GetColumnStyle(cellIndex);
 
                 //if it is a parent or parent name, set it differently
                 if (mapping.Path.ToLower() == "parent")
@@ -375,7 +375,8 @@ namespace Xbim.COBieLiteUK
             }
 
             //call for all child objects but with this as a parent
-            foreach (var child in GetChildren())
+            var children = GetChildren().ToArray();
+            foreach (var child in children)
             {
                 child.WriteToCobie(workbook, log, this, version);
             }
@@ -389,12 +390,12 @@ namespace Xbim.COBieLiteUK
                 var cell = row.GetCell(cellIndex) ?? row.CreateCell(cellIndex);
                 if (cell.CellType == CellType.Blank)
                 {
-                    cell.CellStyle = row.RowStyle;
+                    if (row.RowStyle != null) cell.CellStyle = row.RowStyle;
                     cell.SetCellValue(mapping.Header);
                 }
 
                 if (cell.CellType == CellType.String && cell.StringCellValue.Trim() != mapping.Header)
-                    throw new Exception("Wrong template header!");
+                    cell.SetCellValue(mapping.Header);
             }
         }
 

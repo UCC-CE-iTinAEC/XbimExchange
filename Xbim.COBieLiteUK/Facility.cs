@@ -457,6 +457,13 @@ namespace Xbim.COBieLiteUK
                     break;
                 case ExcelTypeEnum.XLSX: //this is as it should be according to a standard
                     workbook = templateStream == null ? new XSSFWorkbook() : new XSSFWorkbook(templateStream);
+
+                    // This saves around 10 seconds by only refreshing formulas on the first page.
+                    if (templateStream != null)
+                    {
+                        workbook.GetSheetAt(0).ForceFormulaRecalculation = true;
+                    }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("type");
@@ -465,14 +472,14 @@ namespace Xbim.COBieLiteUK
             log = new StringWriter();
             WriteToCobie(workbook, log, null, version);
             
-            //refresh formulas
+            //refresh formulas -- this has quite a significant overhead!
             switch (type)
             {
                 case ExcelTypeEnum.XLS:
                     HSSFFormulaEvaluator.EvaluateAllFormulaCells(workbook);
                     break;
                 case ExcelTypeEnum.XLSX:
-                    XSSFFormulaEvaluator.EvaluateAllFormulaCells(workbook);
+                    if (templateStream == null) XSSFFormulaEvaluator.EvaluateAllFormulaCells(workbook);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("type");
@@ -727,11 +734,18 @@ namespace Xbim.COBieLiteUK
             }
 
             //h) Every reference to other sheets should be valid. - This is mostly granted by the schema itself. We only need to check the keys.
+            // Lookup for speed
+            // Reread everything?
+            var allObjectsLookup = Get<CobieObject>().ToLookup(c => c.GetType());
+
             foreach (var o in all)
             {
                 foreach (var key in o.GetKeys())
                 {
-                    var candidates = Get<CobieObject>(c => c.GetType() == key.ForType && c.Name == key.Name).ToArray();
+                    // This change requires more fixes to be done, but is 10 odd seconds faster
+                    //var candidatesSlow = Get<CobieObject>(c => c.GetType() == key.ForType && c.Name == key.Name).ToArray();
+                    var candidates = allObjectsLookup[key.ForType].Where(c => c.Name == key.Name).ToArray();
+
                     if (candidates.Length == 0)
                     {
                         logger.WriteLine("{0} key '{1}' from {2} '{3}' doesn't point to any object in the model.",
