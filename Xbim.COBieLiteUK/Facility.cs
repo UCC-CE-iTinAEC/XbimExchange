@@ -759,6 +759,7 @@ namespace Xbim.COBieLiteUK
         private Zone GetDefaultZone()
         {
             const string defaultName = "Default zone";
+            if (Zones == null) Zones = new List<Zone>();
             var zone = Zones.FirstOrDefault(z => z.Name == defaultName);
             if (zone != null) return zone;
 
@@ -768,7 +769,8 @@ namespace Xbim.COBieLiteUK
                 CreatedOn = DateTime.Now,
                 CreatedBy = GetDefaultContactKey(),
                 Categories = GetDefaultCategories(),
-                Spaces = new List<SpaceKey>()
+                Spaces = new List<SpaceKey>(),
+                ExternalId = Guid.NewGuid().ToString()
             };
             Zones.Add(zone);
             return zone;
@@ -834,7 +836,8 @@ namespace Xbim.COBieLiteUK
                 CreatedOn = DateTime.Now,
                 CreatedBy = GetDefaultContactKey(),
                 Categories = GetDefaultCategories(),
-                Description = "Default description"
+                Description = "Default description",
+                ExternalId = Guid.NewGuid().ToString()
             };
             GetDefaultZone().Spaces.Add(new SpaceKey { Name = space.Name });
 
@@ -882,7 +885,8 @@ namespace Xbim.COBieLiteUK
                     Spaces = new List<Space>(),
                     CreatedOn = DateTime.Now,
                     CreatedBy = GetDefaultContactKey(),
-                    Categories = GetDefaultCategories()
+                    Categories = GetDefaultCategories(),
+                    ExternalId = Guid.NewGuid().ToString()
                 };
                 Floors.Add(defaultFloor);
             }

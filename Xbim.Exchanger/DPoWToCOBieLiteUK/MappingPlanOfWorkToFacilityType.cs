@@ -220,14 +220,14 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
             var spaceTypes = spaces as IList<SpaceType> ?? spaces.ToList();
             if (spaces == null || !spaceTypes.Any()) return;
 
-            //var tFloor = new Floor
-            //{
-            //    Name = "Default floor",
-            //    Spaces = new List<Space>(),
-            //    ExternalId = Guid.NewGuid().ToString(),
-            //    ExternalSystem = "DPoW"
-            //};
-            //target.Floors = new List<Floor> {tFloor};
+            var tFloor = new Floor
+            {
+                Name = "Default floor",
+                Spaces = new List<Space>(),
+                ExternalId = Guid.NewGuid().ToString(),
+                ExternalSystem = "DPoW"
+            };
+            target.Floors = new List<Floor> { tFloor };
 
             var sMap = Exchanger.GetOrCreateMappings<MappingSpaceTypeToZone>();
             foreach (var spaceType in spaceTypes)
