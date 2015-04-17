@@ -45,14 +45,16 @@ namespace XbimExchanger.DPoWToCOBieLite
                 tObject.Attributes.Add("RequiredLOIDescription", "Required LOI Description", loi.Description, "RequiredLOI");
                 //required attributes with encoded property set name
                 foreach (var sAttr in loi.RequiredAttributes)
-                    tObject.Attributes.Add(new AttributeType
+                {
+                    tObject.Attributes.Add(new AttributeType()
                     {
-                        propertySetName = "[required]" + (sAttr.PropertySetName ?? ""), 
-                        AttributeName = sAttr.Name, 
+                        propertySetName = "[required]" + (sAttr.PropertySetName ?? ""),
+                        AttributeName = sAttr.Name,
                         AttributeDescription = sAttr.Description,
-                        AttributeValue = null,
+                        AttributeValue = sAttr.Value == null ? null : new AttributeValueType() { Item = new AttributeStringValueType() { StringValue = sAttr.Value }, ItemElementName = ItemChoiceType.AttributeStringValue },
                         AttributeIssues = null
                     });
+                }
             }
             
             //Issues from Jobs + Responsibilities

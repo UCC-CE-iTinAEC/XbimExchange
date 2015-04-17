@@ -19,6 +19,10 @@
         /// Variant set name. This helps to convert data between DPoW, IFC and COBie
         /// </summary>
         public string PropertySetName { get; set; }
-        
+
+        /// <summary>
+        /// Allow dpow to specify a value
+        /// </summary>
+        public string Value { get; set; }
     }
 }

@@ -37,8 +37,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xsd2Code", "Xsd2Code\Xsd2Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xbim.COBieLiteUK.CodeGeneration", "Xbim.COBieLiteUK.CodeGeneration\Xbim.COBieLiteUK.CodeGeneration.csproj", "{ECF29BC1-D9B6-4E9F-8915-892B8D6D1089}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTest", "PerformanceTest\PerformanceTest.csproj", "{00C623D4-7622-4366-84C4-29E1F591A094}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,10 +91,6 @@ Global
 		{ECF29BC1-D9B6-4E9F-8915-892B8D6D1089}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECF29BC1-D9B6-4E9F-8915-892B8D6D1089}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECF29BC1-D9B6-4E9F-8915-892B8D6D1089}.Release|Any CPU.Build.0 = Release|Any CPU
-		{00C623D4-7622-4366-84C4-29E1F591A094}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{00C623D4-7622-4366-84C4-29E1F591A094}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{00C623D4-7622-4366-84C4-29E1F591A094}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{00C623D4-7622-4366-84C4-29E1F591A094}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
