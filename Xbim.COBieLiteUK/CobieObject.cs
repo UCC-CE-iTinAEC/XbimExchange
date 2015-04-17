@@ -411,6 +411,8 @@ namespace Xbim.COBieLiteUK
 
         private void FixHeaderForWriting(IRow row, List<MappingAttribute> mappings)
         {
+            if (row == null) return;
+
             foreach (var mapping in mappings)
             {
                 var cellIndex = CellReference.ConvertColStringToIndex(mapping.Column);
