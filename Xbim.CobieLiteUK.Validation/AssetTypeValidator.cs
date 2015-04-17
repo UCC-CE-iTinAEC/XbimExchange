@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using log4net.Util;
+using NPOI.SS.Formula.Functions;
 using Xbim.CobieLiteUK.Validation.Extensions;
 using Xbim.CobieLiteUK.Validation.RequirementDetails;
 using Xbim.COBieLiteUK;
@@ -131,7 +132,7 @@ namespace Xbim.CobieLiteUK.Validation
             // produce type level description
             var outstandingRequirementsCount = 0;
             
-            var cachedValidator = new CachedPropertiesAndAttributesValidator(candidateType);
+            var cachedValidator = new CachedPropertiesAndAttributesValidator<AssetType>(candidateType);
             foreach (var req in RequirementDetails)
             {
                 object satValue;
@@ -168,7 +169,7 @@ namespace Xbim.CobieLiteUK.Validation
                     var reportAsset = new Asset
                     {
                         Name = modelAsset.Name,
-                        AssetIdentifier = modelAsset.AssetIdentifier,
+                        // AssetIdentifier = modelAsset.AssetIdentifier,
                         ExternalId = modelAsset.ExternalId,
                         Categories = new List<Category>(),
                         Attributes = new List<Attribute>()
@@ -179,7 +180,7 @@ namespace Xbim.CobieLiteUK.Validation
                     if (modelAsset.Categories != null)
                         reportAsset.Categories.AddRange(modelAsset.Categories);
 
-                    var assetCachedValidator = new CachedPropertiesAndAttributesValidator(modelAsset);
+                    var assetCachedValidator = new CachedPropertiesAndAttributesValidator<Asset>(modelAsset);
                     foreach (var req in RequirementDetails)
                     {
                         object satValue;
@@ -298,7 +299,7 @@ namespace Xbim.CobieLiteUK.Validation
         /// </summary>
         /// <param name="submitted"></param>
         /// <returns></returns>
-        internal IEnumerable<AssetTypeCategoryMatch> GetCandidates(Facility submitted)
+        internal IEnumerable<AssetTypeCategoryMatch<AssetType>> GetCandidates(List<AssetType> submitted)
         {
             if (_requirementType.Categories == null)
                 yield break;
@@ -306,7 +307,7 @@ namespace Xbim.CobieLiteUK.Validation
             var ret = new Dictionary<AssetType, List<Category>>();
             foreach (var reqClass in _requirementType.Categories)
             {
-                var thisClassMatch = submitted.AssetTypes.GetClassificationMatches(reqClass);
+                var thisClassMatch = reqClass.GetClassificationMatches(submitted);
                 foreach (var matchedAsset in thisClassMatch)
                 {
                     if (!ret.ContainsKey(matchedAsset.MatchedAssetType))
@@ -322,11 +323,11 @@ namespace Xbim.CobieLiteUK.Validation
 
             foreach (var item in ret)
             {
-                yield return new AssetTypeCategoryMatch(item.Key) { MatchingCategories = item.Value } ;
+                yield return new AssetTypeCategoryMatch<AssetType>(item.Key) { MatchingCategories = item.Value } ;
             }
         }
 
-        internal AssetType Validate(AssetTypeCategoryMatch candidate)
+        internal AssetType Validate(AssetTypeCategoryMatch<AssetType> candidate)
         {
             var validated = Validate(candidate.MatchedAssetType);
             validated.SetMatchingCategories(candidate.MatchingCategories);

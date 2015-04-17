@@ -77,46 +77,51 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
-    <Reference Include="Xbim.Common, Version=3.0.5567.28396, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Xbim.Essentials.3.0.18\lib\net45\Xbim.Common.dll</HintPath>
+    <Reference Include="Xbim.Common">
+      <HintPath>..\packages\Xbim.Essentials.3.0.19\lib\net45\Xbim.Common.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Xbim.Ifc.Extensions">
-      <HintPath>..\packages\Xbim.Essentials.3.0.18\lib\net45\Xbim.Ifc.Extensions.dll</HintPath>
+      <HintPath>..\packages\Xbim.Essentials.3.0.19\lib\net45\Xbim.Ifc.Extensions.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Xbim.Ifc2x3">
-      <HintPath>..\packages\Xbim.Essentials.3.0.18\lib\net45\Xbim.Ifc2x3.dll</HintPath>
+      <HintPath>..\packages\Xbim.Essentials.3.0.19\lib\net45\Xbim.Ifc2x3.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Xbim.IO">
-      <HintPath>..\packages\Xbim.Essentials.3.0.18\lib\net45\Xbim.IO.dll</HintPath>
+      <HintPath>..\packages\Xbim.Essentials.3.0.19\lib\net45\Xbim.IO.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssetTypeValidator.cs" />
+    <Compile Include="CobieObjectValidator.cs" />
     <Compile Include="CachedPropertiesAndAttributesValidator.cs" />
-    <Compile Include="Extensions\AssetTypesExtensions.cs" />
+    <Compile Include="DocumentsValidator.cs" />
+    <Compile Include="Extensions\CobieObjectExtensions.cs" />
     <Compile Include="Extensions\CategoryExtensions.cs" />
+    <Compile Include="Extensions\CobieValueExtensions.cs" />
     <Compile Include="Extensions\FacilityExtensions.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="IValidator.cs" />
     <Compile Include="ProjectValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FacilityValidator.cs" />
-    <Compile Include="Reporting\AssetTypeDetailedGridReport.cs" />
-    <Compile Include="Reporting\AssetTypeRequirementPointer.cs" />
-    <Compile Include="Reporting\AssetTypeSummaryReport.cs" />
+    <Compile Include="Reporting\DocumentsDetailedReport.cs" />
+    <Compile Include="Reporting\TwoLevelDetailedGridReport.cs" />
+    <Compile Include="Reporting\TwoLevelRequirementPointer.cs" />
+    <Compile Include="Reporting\GroupingObjectSummaryReport.cs" />
+    <Compile Include="Reporting\DocumentReport.cs" />
     <Compile Include="Reporting\ExcelCellVisualValue.cs" />
     <Compile Include="Reporting\FacilityReport.cs" />
     <Compile Include="Reporting\IVisualValue.cs" />
     <Compile Include="Reporting\ValidatedAttribute.cs" />
     <Compile Include="Reporting\VisualValue.cs" />
-    <Compile Include="RequirementDetails\AssetTypeCategoryMatch.cs" />
+    <Compile Include="RequirementDetails\CobieObjectCategoryMatch.cs" />
     <Compile Include="RequirementDetails\RequirementDetail.cs" />
     <Compile Include="Reporting\ExcelValidationReport.cs" />
     <Compile Include="RequirementDetails\RequirementProvision.cs" />
+    <Compile Include="ValidationException.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

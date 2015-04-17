@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
-using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
 using Xbim.COBieLiteUK.Converters;
-using Xbim.XbimExtensions.DataProviders;
 using Formatting = System.Xml.Formatting;
 
 namespace Xbim.COBieLiteUK
@@ -25,6 +24,18 @@ namespace Xbim.COBieLiteUK
         public Facility()
         {
             Metadata = new Metadata();
+        }
+
+        /// <summary>
+        /// Creates a new class inheryting from CobieObject and sets it to belong to the facility.
+        /// </summary>
+        /// <typeparam name="TNewCobieObject">The CobieObject type to create</typeparam>
+        /// <returns>the created object, which will have to be added to a collection as appropriate to be in the facility tree</returns>
+        public TNewCobieObject Create<TNewCobieObject>() where TNewCobieObject : CobieObject, new()
+        {
+            var retObject = new TNewCobieObject();
+            retObject.SetFacility(this);
+            return  retObject;
         }
 
         public IEnumerable<T> Get<T>(Func<T, bool> condition = null) where T : CobieObject
@@ -41,6 +52,7 @@ namespace Xbim.COBieLiteUK
         }
 
         #region Enumerations
+
         public AreaUnit AreaUnits
         {
             get
@@ -133,14 +145,14 @@ namespace Xbim.COBieLiteUK
                     return result;
 
                 //try to use aliases
-                var enumMembers = typeof(VolumeUnit).GetFields();
+                var enumMembers = typeof (VolumeUnit).GetFields();
                 foreach (var member in from member in enumMembers
-                                       let alias = member.GetCustomAttributes<AliasAttribute>()
-                                           .FirstOrDefault(
-                                               a => String.Equals(a.Value, VolumeUnitsCustom, StringComparison.CurrentCultureIgnoreCase))
-                                       where alias != null
-                                       select member)
-                    return (VolumeUnit)member.GetValue(result);
+                    let alias = member.GetCustomAttributes<AliasAttribute>()
+                        .FirstOrDefault(
+                            a => String.Equals(a.Value, VolumeUnitsCustom, StringComparison.CurrentCultureIgnoreCase))
+                    where alias != null
+                    select member)
+                    return (VolumeUnit) member.GetValue(result);
 
                 //if nothing fits it is a user defined value
                 return VolumeUnit.userdefined;
@@ -155,7 +167,7 @@ namespace Xbim.COBieLiteUK
                     case VolumeUnit.userdefined:
                         break;
                     default:
-                        VolumeUnitsCustom = Enum.GetName(typeof(VolumeUnit), value);
+                        VolumeUnitsCustom = Enum.GetName(typeof (VolumeUnit), value);
                         break;
                 }
             }
@@ -173,14 +185,14 @@ namespace Xbim.COBieLiteUK
                     return result;
 
                 //try to use aliases
-                var enumMembers = typeof(CurrencyUnit).GetFields();
+                var enumMembers = typeof (CurrencyUnit).GetFields();
                 foreach (var member in from member in enumMembers
-                                       let alias = member.GetCustomAttributes<AliasAttribute>()
-                                           .FirstOrDefault(
-                                               a => String.Equals(a.Value, CurrencyUnitCustom, StringComparison.CurrentCultureIgnoreCase))
-                                       where alias != null
-                                       select member)
-                    return (CurrencyUnit)member.GetValue(result);
+                    let alias = member.GetCustomAttributes<AliasAttribute>()
+                        .FirstOrDefault(
+                            a => String.Equals(a.Value, CurrencyUnitCustom, StringComparison.CurrentCultureIgnoreCase))
+                    where alias != null
+                    select member)
+                    return (CurrencyUnit) member.GetValue(result);
 
                 //if nothing fits it is a user defined value
                 return CurrencyUnit.userdefined;
@@ -195,7 +207,7 @@ namespace Xbim.COBieLiteUK
                     case CurrencyUnit.userdefined:
                         break;
                     default:
-                        CurrencyUnitCustom = Enum.GetName(typeof(CurrencyUnit), value);
+                        CurrencyUnitCustom = Enum.GetName(typeof (CurrencyUnit), value);
                         break;
                 }
             }
@@ -277,34 +289,54 @@ namespace Xbim.COBieLiteUK
 
         #region Cloning through jsonSerialiser
 
-        internal static T Clone<T>(T source)
+        /// <summary>
+        /// Clones a provided cobieobject via JsonSeriliser and then sets the result to belong to the cloning facility.
+        /// </summary>
+        /// <typeparam name="TNewCobieObject">The type of the object to clone.</typeparam>
+        /// <param name="originalCobieObject">The CobieObject to be cloned via Json in memory.</param>
+        /// <returns></returns>
+        public TNewCobieObject Clone<TNewCobieObject>(TNewCobieObject originalCobieObject) where TNewCobieObject : CobieObject, new()
         {
-            var mem = WriteJsonToMemory(source);
-            return ReadJsonFrom<T>(mem);
+            var mem = WriteJsonToMemory(originalCobieObject);
+            var cloned = ReadJsonFrom<TNewCobieObject>(mem);
+            cloned.SetFacility(this);
+            return cloned;
         }
 
-        private static byte[] WriteJsonToMemory<T>(T o)
+        public IEnumerable<TNewCobieObject> Clone<TNewCobieObject>(IEnumerable<TNewCobieObject> originalCobieObjects) where TNewCobieObject : CobieObject, new()
+        {
+            return originalCobieObjects.Select(Clone);
+        }
+
+        private JsonSerializer _cachedCloningSerialiser;
+
+        private JsonSerializer CachedCloningSerialiser
+        {
+            get { return _cachedCloningSerialiser ?? (_cachedCloningSerialiser = GetJsonSerializer()); }
+        }
+        
+
+        private byte[] WriteJsonToMemory<T>(T o)
         {
             var stream = new MemoryStream();
             using (var textWriter = new StreamWriter(stream))
             {
-                var serialiser = GetJsonSerializer();
-                serialiser.Serialize(textWriter, o);
+                CachedCloningSerialiser.Serialize(textWriter, o);
                 stream.Flush();
             }
             return stream.GetBuffer();
         }
 
-        private static T ReadJsonFrom<T>(byte[] mem)
+        private T ReadJsonFrom<T>(byte[] mem)
         {
             Stream stream = new MemoryStream(mem);
             using (var textReader = new StreamReader(stream))
             {
-                var serialiser = GetJsonSerializer();
-                var deserialised = (T)serialiser.Deserialize(textReader, typeof(T));
+                var deserialised = (T)CachedCloningSerialiser.Deserialize(textReader, typeof(T));
                 return deserialised;
             }
         }
+
         #endregion
 
         public void WriteJson(Stream stream, bool indented = false)
@@ -351,8 +383,6 @@ namespace Xbim.COBieLiteUK
 
         #region Reading COBie Spreadsheet
 
-        [SuppressMessage("ReSharper", "InconsistentNaming")] private StringWriter log = new StringWriter();
-
         public static Facility ReadCobie(string path, out string message, string version = "UK2012")
         {
             if (path == null) throw new ArgumentNullException("path");
@@ -383,38 +413,83 @@ namespace Xbim.COBieLiteUK
                 default:
                     throw new ArgumentOutOfRangeException("type");
             }
+
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             string msg;
             var flatList = ReadAllCobieObjects(workbook, out msg, version);
             message = msg ?? "";
 
-            //create structure hierarchy
-            foreach (var cobieObject in flatList)
-            {
-                cobieObject.AddToParent(flatList, out msg, version);
-                message += msg;
-            }
+            Debug.WriteLine("Reading all COBie objects: " + stopWatch.ElapsedMilliseconds);
+            stopWatch.Reset();
+            stopWatch.Start();
 
-
-            //return first parent
-            var facility = flatList.OfType<Facility>().FirstOrDefault();
+            var facilities = flatList.OfType<Facility>().ToArray();
+            if (facilities.Count() > 1)
+                message +=
+                    String.Format(
+                        "There are {0} facilities in the data. Only first facility {1} will be used. This is an invalid COBie spreadsheet. \n",
+                        facilities.Length, facilities[0].Name);
+            var facility = facilities.FirstOrDefault();
             if (facility == null)
             {
-                message = "There is no facility in the data. This is an invalid data structure. \n" + msg;
-                return null;
+                message +=
+                    "There is no facility in the data. Default facility will be created as a root object. This is an invalid COBie spreadsheet. \n";
+                facility = new Facility {Name = "Default facility"};
+                flatList.Add(facility);
             }
 
+            //create structure hierarchy
+            var parallelMessage = new[] {""};
+            var newTypes = new List<AssetType>();
+            var typeDictionary = CreateTypeDictionary(flatList);
+            Parallel.ForEach(flatList.ToArray(), o =>
+            {
+                string addToParentMsg;
+                o.AddToParent(typeDictionary, facility, newTypes, out addToParentMsg, version);
+                lock (parallelMessage)
+                {
+                    parallelMessage[0] += addToParentMsg;
+                }
+            });
+            message += parallelMessage[0];
+
+            //foreach (var cobieObject in flatList.ToArray())
+            //{
+            //    cobieObject.AddToParent(typeDictionary, facility, newTypes, out msg, version);
+            //    message += msg;
+            //}
+
+            flatList.AddRange(newTypes);
+            foreach (var cobieObject in flatList)
+            {
+                cobieObject.AfterCobieRead();
+            }
+
+            Debug.WriteLine("Building COBieLite hierarchy: " + stopWatch.ElapsedMilliseconds);
+            stopWatch.Reset();
+            stopWatch.Start();
+
+
             //load metadate from the first sheet
-            facility.Metadata  = new Metadata();
+            facility.Metadata = new Metadata();
             var log = new StringWriter();
             facility.Metadata.LoadFromCobie(workbook, log, version);
-            msg += log.ToString();
-
-            message = msg;
+            message += log.ToString();
 
             //set facility for all objects
             facility.SetFacility(facility);
 
             return facility;
+        }
+
+        private static Dictionary<Type, CobieObject[]> CreateTypeDictionary(List<CobieObject> flatList)
+        {
+            var types =
+                typeof(CobieObject).Assembly.GetTypes()
+                    .Where(t => !t.IsAbstract && typeof(CobieObject).IsAssignableFrom(t));
+            return types.ToDictionary(type => type, type => flatList.Where(o => o.GetType() == type).ToArray());
         }
 
         private static List<CobieObject> ReadAllCobieObjects(IWorkbook workbook, out string message, string version)
@@ -426,9 +501,15 @@ namespace Xbim.COBieLiteUK
                     .Where(t => !t.IsAbstract && typeof (CobieObject).IsAssignableFrom(t));
             foreach (var type in types)
             {
+                var stop = new Stopwatch();
+                stop.Start();
+
                 string msg;
-                result.AddRange(CobieObject.LoadFromCobie(type, workbook, out msg, version));
+                result.AddRange(LoadFromCobie(type, workbook, out msg, version));
                 message += msg;
+                
+                stop.Stop();
+                Debug.WriteLine("   Loading {0}: {1}", type.Name, stop.ElapsedMilliseconds);
             }
             return result;
         }
@@ -446,7 +527,8 @@ namespace Xbim.COBieLiteUK
                 var templateName = version + (type == ExcelTypeEnum.XLS ? ".xls" : ".xlsx");
                 templateStream =
                     GetType()
-                        .Assembly.GetManifestResourceStream(String.Format("{0}.Templates.{1}", GetType().Namespace, templateName));
+                        .Assembly.GetManifestResourceStream(String.Format("{0}.Templates.{1}", GetType().Namespace,
+                            templateName));
             }
 
             IWorkbook workbook;
@@ -468,10 +550,16 @@ namespace Xbim.COBieLiteUK
                 default:
                     throw new ArgumentOutOfRangeException("type");
             }
-            
-            log = new StringWriter();
-            WriteToCobie(workbook, log, null, version);
-            
+
+            var log = new StringWriter();
+            var watch = new Stopwatch();
+            watch.Start();
+
+            WriteToCobie(workbook, log, null, new Dictionary<Type, int>(), new List<string>(), new Dictionary<string, int>(), version);
+
+            watch.Stop();
+            Debug.WriteLine("Creating NPOI model: {0}ms", watch.ElapsedMilliseconds);
+
             //refresh formulas -- this has quite a significant overhead!
             switch (type)
             {
@@ -507,14 +595,16 @@ namespace Xbim.COBieLiteUK
                 file.Close();
             }
         }
+
         #endregion
 
-        internal override void WriteToCobie(IWorkbook workbook, TextWriter loger, CobieObject parent, string version = "UK2012")
+        internal override void WriteToCobie(IWorkbook workbook, TextWriter loger, CobieObject parent,
+            Dictionary<Type, int> rowNumCache, List<string> pickValuesCache, Dictionary<string, int> headerCache, string version = "UK2012")
         {
-            base.WriteToCobie(workbook, loger, parent, version);
+            base.WriteToCobie(workbook, loger, parent, rowNumCache, pickValuesCache, headerCache, version);
 
             //write metadata out
-            if(Metadata != null) 
+            if (Metadata != null)
                 Metadata.WriteToCobie(workbook, loger, version);
         }
 
@@ -573,6 +663,11 @@ namespace Xbim.COBieLiteUK
         {
             //initial counter value for automatic unique names
             _counter = 1001;
+            _defaultSystem = null;
+            _anyDefaultSpace = null;
+
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
 
             //Clarity of naming
             //To ensure the clarity of naming, the following should be done.
@@ -587,18 +682,20 @@ namespace Xbim.COBieLiteUK
             {
                 if (String.IsNullOrEmpty(o.Name))
                 {
-                    logger.WriteLine("Object of type {0} (description: {1}) doesn't have a 'Name'! This is illegal.", o.GetType().Name, o.Description);
-                    if (fixIfPossible) o.Name = String.Format("{0} {1}", o.GetType().Name, _counter++);    
+                    logger.WriteLine("Object of type {0} (description: {1}) doesn't have a 'Name'! This is illegal.",
+                        o.GetType().Name, o.Description);
+                    if (fixIfPossible) o.Name = String.Format("{0} {1}", o.GetType().Name, _counter++);
                 }
                 if (regex.IsMatch(o.Name))
                 {
                     logger.WriteLine("Name {0} of {1} contains forbidden characters.", o.Name, o.GetType().Name);
                     if (fixIfPossible) o.Name = regex.Replace(o.Name, "");
                 }
-                foreach (var key in o.GetKeys().Where(key => regex.IsMatch(key.Name)))
+                foreach (var key in o.GetKeys().Where(key => regex.IsMatch(key.Name ?? "")))
                 {
-                    logger.WriteLine("Name {0} of {1} key contains forbidden characters.", key.Name, key.GetSheet("UK2012"));
-                    if (fixIfPossible) key.Name = regex.Replace(key.Name, "");
+                    logger.WriteLine("Name {0} of {1} key contains forbidden characters.", key.Name,
+                        key.GetSheet("UK2012"));
+                    if (fixIfPossible) key.Name = regex.Replace(key.Name ?? "", "");
                 }
 
                 if (o.Categories != null && o.Categories.Any())
@@ -630,9 +727,12 @@ namespace Xbim.COBieLiteUK
                 }
 
                 //CreatedBy is a foreign key which should be defined for all objects
-                if (o.CreatedBy == null)
+                if (o.CreatedBy == null && fixIfPossible)
                     o.CreatedBy = GetDefaultContactKey();
             }
+            stopWatch.Stop();
+            Debug.WriteLine("   Validation of names (invalid characters) and categories: " + stopWatch.ElapsedMilliseconds);
+            stopWatch.Restart();
 
             //Uniqueness of information should be ensured. Names should be unique within
             //their sheet, except that the System, Zone and Attribute names should be unique in
@@ -642,42 +742,57 @@ namespace Xbim.COBieLiteUK
             //c) On the “Zone” sheet, every Zone Name (column A) taken with Space‑Names (column E) should be unique.
             CheckForUniqueNames(Contacts, logger, fixIfPossible);
             CheckForUniqueNames(Floors, logger, fixIfPossible);
-            CheckForUniqueNames(Get<Space>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Space>(), logger, fixIfPossible);
             CheckForUniqueNames(AssetTypes, logger, fixIfPossible);
-            CheckForUniqueNames(Get<Asset>(), logger, fixIfPossible);
-            CheckForUniqueNames(Get<Spare>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Asset>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Spare>(), logger, fixIfPossible);
             CheckForUniqueNames(Resources, logger, fixIfPossible);
             CheckForUniqueNames(Zones, logger, fixIfPossible);
             CheckForUniqueNames(Systems, logger, fixIfPossible);
             CheckForUniqueNames(Stages, logger, fixIfPossible);
 
             //Suplementary information
-            CheckForUniqueNames(Get<Assembly>(), logger, fixIfPossible);
-            CheckForUniqueNames(Get<Connection>(), logger, fixIfPossible);
-            CheckForUniqueNames(Get<Job>(), logger, fixIfPossible);
-            CheckForUniqueNames(Get<Impact>(), logger, fixIfPossible);
-            CheckForUniqueNames(Get<Document>(), logger, fixIfPossible);
-            CheckForUniqueNames(Get<Representation>(), logger, fixIfPossible);
-            CheckForUniqueNames(Get<Issue>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Assembly>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Connection>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Job>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Impact>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Document>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Representation>(), logger, fixIfPossible);
+            CheckForUniqueNames(all.OfType<Issue>(), logger, fixIfPossible);
 
             //attributes are only unique within a containing object
             foreach (var cobieObject in all.Where(cobieObject => cobieObject.Attributes != null))
                 CheckForUniqueNames(cobieObject.Attributes, logger, fixIfPossible);
+
+            stopWatch.Stop();
+            Debug.WriteLine("   Checking unique names: " + stopWatch.ElapsedMilliseconds);
+            stopWatch.Restart();
+
+            var referenceWatch = new Stopwatch();
+            referenceWatch.Start();
 
             //The integrity of references should be ensured as follows:
             //a) Every Space (location) should be assigned to one Floor (region). - If the name is unique this is granted by COBieLite data schema
             //b) Every Space (location) should be assigned to at least one Zone.
             var spaces = Get<Space>().ToList();
             var zones = Zones ?? new List<Zone>();
-            foreach (var space in spaces.Where(space => !zones.Any(z => z.Spaces != null && z.Spaces.Select(s => s.Name).Contains(space.Name))))
+            foreach (
+                var space in
+                    spaces.Where(
+                        space => !zones.Any(z => z.Spaces != null && z.Spaces.Select(s => s.Name).Contains(space.Name)))
+                )
             {
                 logger.WriteLine("Space '{0}' is not in any zone.", space.Name);
                 if (!fixIfPossible) continue;
 
                 if (Zones == null) Zones = new List<Zone>();
                 var defaultZone = GetDefaultZone();
-                defaultZone.Spaces.Add(new SpaceKey{Name = space.Name});
+                defaultZone.Spaces.Add(new SpaceKey {Name = space.Name});
             }
+            referenceWatch.Stop();
+            Debug.WriteLine("   Every space in zone: " + referenceWatch.ElapsedMilliseconds);
+            referenceWatch.Restart();
+
             //c) Every Floor and Zone should have at least one Space (location).
             if (Floors != null)
             {
@@ -697,10 +812,14 @@ namespace Xbim.COBieLiteUK
                     if (!fixIfPossible) continue;
                     if (zone.Spaces == null) zone.Spaces = new List<SpaceKey>();
                     var defaultSpace = GetAnyDefaultSpace();
-                    zone.Spaces.Add(new SpaceKey { Name = defaultSpace.Name });
+                    zone.Spaces.Add(new SpaceKey {Name = defaultSpace.Name});
                 }
             }
-            
+            referenceWatch.Stop();
+            Debug.WriteLine("   Every floor and zone has a space: " + referenceWatch.ElapsedMilliseconds);
+            referenceWatch.Restart();
+
+
             //d) Every Component should be assigned to at least one Space (location), from which it is used, inspected or maintained.
             //e) Every Component should be assigned to one Type. - This is granted by design of COBieLite 
             var assets = Get<Asset>().ToArray();
@@ -709,42 +828,78 @@ namespace Xbim.COBieLiteUK
                 logger.WriteLine("Component {0} is not assigned to any space.", asset.Name);
                 if (!fixIfPossible) continue;
                 var space = GetAnyDefaultSpace();
-                if(asset.Spaces == null) asset.Spaces = new List<SpaceKey>();
-                asset.Spaces.Add(new SpaceKey{Name = space.Name});
+                if (asset.Spaces == null) asset.Spaces = new List<SpaceKey>();
+                asset.Spaces.Add(new SpaceKey {Name = space.Name});
             }
+            referenceWatch.Stop();
+            Debug.WriteLine("   Every component is in space: " + referenceWatch.ElapsedMilliseconds);
+            referenceWatch.Restart();
 
             //f) Every Component should be assigned to at least one System, identifying its function.
-            foreach (var asset in assets.Where(a => Systems == null || !Systems.Any(s => s.Components != null && s.Components.Any(c => c.Name == a.Name))))
+            foreach (
+                var asset in
+                    assets.Where(
+                        a =>
+                            Systems == null ||
+                            !Systems.Any(s => s.Components != null && s.Components.Any(c => c.Name == a.Name))))
             {
                 logger.WriteLine("Component {0} is not assigned to any system.", asset.Name);
                 if (fixIfPossible)
                 {
-                    GetDefaultSystem().Components.Add(new AssetKey{ Name = asset.Name });
+                    GetDefaultSystem().Components.Add(new AssetKey {Name = asset.Name});
                 }
             }
+            referenceWatch.Stop();
+            Debug.WriteLine("   Every component is in system: " + referenceWatch.ElapsedMilliseconds);
+            referenceWatch.Restart();
 
             //g) Every Type should apply to at least one Component.
-            var types = Get<AssetType>();
-            foreach (var type in types.Where(t => t.Assets == null || !t.Assets.Any()))
+            foreach (var type in AssetTypes.Where(t => t.Assets == null || !t.Assets.Any()))
             {
                 logger.WriteLine("Type {0} doesn't contain any components.", type.Name);
                 if (!fixIfPossible) continue;
-                if(type.Assets == null) type.Assets = new List<Asset>();
+                if (type.Assets == null) type.Assets = new List<Asset>();
                 type.Assets.Add(GetNewDefaultAsset());
             }
 
-            //h) Every reference to other sheets should be valid. - This is mostly granted by the schema itself. We only need to check the keys.
-            // Lookup for speed
-            // Reread everything?
-            var allObjectsLookup = Get<CobieObject>().ToLookup(c => c.GetType());
+            referenceWatch.Stop();
+            Debug.WriteLine("   Every type has a component: " + referenceWatch.ElapsedMilliseconds);
+            referenceWatch.Restart();
 
+            stopWatch.Stop();
+            Debug.WriteLine("   ------- Checking references (every type has a component, ...): " + stopWatch.ElapsedMilliseconds);
+            stopWatch.Restart();
+
+            //h) Every reference to other sheets should be valid. - This is mostly granted by the schema itself. We only need to check the keys.
+            ValidateKeys(logger, fixIfPossible);
+
+            stopWatch.Stop();
+            Debug.WriteLine("   Checking valid keys: " + stopWatch.ElapsedMilliseconds);
+            stopWatch.Restart();
+            //i) Every reference to PickList enumerations and classifications should be valid. - We don't store any specific pick lists like classifications etc. This depends on project specific settings.
+            //j) Enumerations specified in the Attributes and PickLists should be adhered to.
+        }
+
+        private void ValidateKeys(TextWriter logger, bool fixIfPossible)
+        {
+            //get all cobie objects as a flat list to avoid tens of thousands of recursive searches
+            var all = Get<CobieObject>().ToArray();
+            //contacts are used in every single object so it is better to cache them and avoid tens of thousands of searches
+            var defaultContact = GetDefaultContactKey();
+            var cache = new Dictionary<Type, CobieObject[]>();
             foreach (var o in all)
             {
-                foreach (var key in o.GetKeys())
+                foreach (var key in o.GetKeys().ToArray())
                 {
-                    // This change requires more fixes to be done, but is 10 odd seconds faster
-                    //var candidatesSlow = Get<CobieObject>(c => c.GetType() == key.ForType && c.Name == key.Name).ToArray();
-                    var candidates = allObjectsLookup[key.ForType].Where(c => c.Name == key.Name).ToArray();
+                    CobieObject[] candidates;
+                    //use type cache to get first level of candidates
+                    if (!cache.TryGetValue(key.ForType, out candidates))
+                    {
+                        candidates = all.Where(c => c.GetType() == key.ForType).ToArray();
+                        cache.Add(key.ForType, candidates);
+                    }
+                    //filter by name
+                    candidates = candidates.Where(c => c.Name == key.Name).ToArray();
 
                     if (candidates.Length == 0)
                     {
@@ -752,22 +907,31 @@ namespace Xbim.COBieLiteUK
                             GetSheetName(key.ForType, "UK2012"), key.Name, GetSheetName(o.GetType(), "UK2012"), o.Name);
                         if (fixIfPossible)
                         {
-                            //these two are the most frequent keys
-                            var contactKey = key as ContactKey;
-                            if (contactKey != null)
-                                contactKey.Email = GetDefaultContactKey().Email;
-                            var spaceKey = key as SpaceKey;
-                            if (spaceKey != null)
-                                spaceKey.Name = GetAnyDefaultSpace().Name;
+                            var keyType = key.GetType().Name;
+                            switch (keyType)
+                            {
+                                //these two are the most frequent keys
+                                case "ContactKey":
+                                    //set contact key to the default value
+                                    ((ContactKey) key).Email = defaultContact.Email;
+                                    break;
+                                case "SpaceKey":
+                                    //set space key to default value
+                                    key.Name = GetAnyDefaultSpace().Name;
+                                    break;
+                                default:
+                                    //Delete the key otherwise. It doesn't make a sense if it doesn't point to any object in the model.
+                                    o.RemoveKey(key);
+                                    break;
+                            }
                         }
                     }
                     if (candidates.Length > 1)
-                        logger.WriteLine("{0} key '{1}' from {2} '{3}' points to more than one object in the model. Ambiguous reference can't be fixed.", key.ForType.Name, key.Name, o.GetType().Name, o.Name);
+                        logger.WriteLine(
+                            "{0} key '{1}' from {2} '{3}' points to more than one object in the model. Ambiguous reference can't be fixed.",
+                            key.ForType.Name, key.Name, o.GetType().Name, o.Name);
                 }
             }
-            
-            //i) Every reference to PickList enumerations and classifications should be valid. - We don't store any specific pick lists like classifications etc. This depends on project specific settings.
-            //j) Enumerations specified in the Attributes and PickLists should be adhered to.
         }
 
         private Zone GetDefaultZone()
@@ -792,14 +956,16 @@ namespace Xbim.COBieLiteUK
 
         private void CheckForUniqueNames(IEnumerable<CobieObject> objects, TextWriter logger, bool fixIfPossible)
         {
-            if(objects == null) return;
-            
+            if (objects == null) return;
+
             var groups = objects.GroupBy(o => o.Name);
             foreach (var g in groups.Where(g => g.Count() > 1))
             {
-                logger.WriteLine("{0} {1} doesn't have an unique name. There are {2} instances with the same name. If fixed it may break key references.", g.First().GetType().Name, g.Key, g.Count());
+                logger.WriteLine(
+                    "{0} {1} doesn't have an unique name. There are {2} instances with the same name. If fixed it may break key references.",
+                    g.First().GetType().Name, g.Key, g.Count());
                 if (!fixIfPossible) continue;
-                
+
                 var counter = 0;
                 foreach (var cobieObject in g)
                     cobieObject.Name = String.Format("{0} ({1})", cobieObject.Name, counter++);
@@ -808,22 +974,32 @@ namespace Xbim.COBieLiteUK
 
         private Asset GetNewDefaultAsset()
         {
-            return new Asset
+            var result = new Asset
             {
                 Name = "Default component " + _counter++,
                 CreatedBy = GetDefaultContactKey(),
                 CreatedOn = DateTime.Now,
-                Spaces = new List<SpaceKey>(new[] { new SpaceKey { Name = GetAnyDefaultSpace().Name } }),
+                Spaces = new List<SpaceKey>(new[] {new SpaceKey {Name = GetAnyDefaultSpace().Name}}),
                 Description = "Default component"
             };
+            var system = GetDefaultSystem();
+            system.Components.Add(new AssetKey {Name = result.Name});
+            return result;
         }
 
+        private System _defaultSystem;
         private System GetDefaultSystem()
         {
+            if (_defaultSystem != null) return _defaultSystem;
+
             const string name = "Default system";
-            if(Systems == null) Systems = new List<System>();
+            if (Systems == null) Systems = new List<System>();
             var system = Systems.FirstOrDefault(s => s.Name == name);
-            if (system != null) return system;
+            if (system != null)
+            {
+                _defaultSystem = system;
+                return system;
+            }
             system = new System
             {
                 Name = name,
@@ -832,14 +1008,28 @@ namespace Xbim.COBieLiteUK
                 CreatedOn = DateTime.Now,
                 Components = new List<AssetKey>()
             };
+            _defaultSystem = system;
             Systems.Add(system);
             return system;
         }
 
+        private Space _anyDefaultSpace;
         private Space GetAnyDefaultSpace()
         {
-            var defaultSpace = Get<Space>(s => s.Name.StartsWith("Default space")).FirstOrDefault();
-            return defaultSpace ?? GetNewDefaultSpace(true);
+            if (_anyDefaultSpace != null) return _anyDefaultSpace;
+
+            foreach (var floor in Floors ?? new List<Floor>())
+            {
+                foreach (var space in floor.Spaces ?? new List<Space>())
+                {
+                    if (!space.Name.StartsWith("Default space")) continue;
+                    _anyDefaultSpace = space;
+                    return space;
+                }
+            }
+
+            _anyDefaultSpace = GetNewDefaultSpace(true);
+            return _anyDefaultSpace;
         }
 
         private Space GetNewDefaultSpace(bool addToDefaultFloor)
@@ -853,7 +1043,7 @@ namespace Xbim.COBieLiteUK
                 Description = "Default description",
                 ExternalId = Guid.NewGuid().ToString()
             };
-            GetDefaultZone().Spaces.Add(new SpaceKey { Name = space.Name });
+            GetDefaultZone().Spaces.Add(new SpaceKey {Name = space.Name});
 
             if (!addToDefaultFloor) return space;
 
@@ -866,7 +1056,7 @@ namespace Xbim.COBieLiteUK
         private ContactKey GetDefaultContactKey()
         {
             const string defaultEmail = "default.contact@default.def";
-            if(Contacts == null) Contacts = new List<Contact>();
+            if (Contacts == null) Contacts = new List<Contact>();
             var contact = Contacts.FirstOrDefault(c => c.Email == defaultEmail);
             if (contact != null) return new ContactKey {Email = defaultEmail};
             contact = new Contact
@@ -874,18 +1064,18 @@ namespace Xbim.COBieLiteUK
                 Email = defaultEmail,
                 Categories = GetDefaultCategories(),
                 CreatedOn = DateTime.Now,
-                CreatedBy = new ContactKey{ Email = defaultEmail},
+                CreatedBy = new ContactKey {Email = defaultEmail},
                 Company = "Default company",
                 Phone = "+00 0000 0000"
             };
             Contacts.Add(contact);
-            return new ContactKey { Email = defaultEmail };
+            return new ContactKey {Email = defaultEmail};
         }
 
         private List<Category> GetDefaultCategories()
         {
             //unknown is the recomended value from BS 1192-4
-            return new List<Category>(new []{new Category{Code = "unknown"}});
+            return new List<Category>(new[] {new Category {Code = "unknown"}});
         }
 
         private Floor GetDefaultFloor()
@@ -895,7 +1085,7 @@ namespace Xbim.COBieLiteUK
             {
                 defaultFloor = new Floor
                 {
-                    Name = "Default floor", 
+                    Name = "Default floor",
                     Spaces = new List<Space>(),
                     CreatedOn = DateTime.Now,
                     CreatedBy = GetDefaultContactKey(),
