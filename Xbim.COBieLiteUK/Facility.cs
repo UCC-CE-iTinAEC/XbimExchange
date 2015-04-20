@@ -854,7 +854,8 @@ namespace Xbim.COBieLiteUK
             referenceWatch.Restart();
 
             //g) Every Type should apply to at least one Component.
-            if (AssetTypes != null)
+            if(AssetTypes != null)
+            foreach (var type in AssetTypes.Where(t => t.Assets == null || !t.Assets.Any()))
             {
                 foreach (var type in AssetTypes.Where(t => t.Assets == null || !t.Assets.Any()))
                 {
