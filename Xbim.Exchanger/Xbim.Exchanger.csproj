@@ -140,12 +140,12 @@
     <Compile Include="IfcToCOBieLiteUK\ContactConverter.cs" />
     <Compile Include="IfcToCOBieLiteUK\IfcToCOBieLiteUkExchanger.cs" />
     <Compile Include="IfcToCOBieLiteUK\MappingIfcActorToContact.cs" />
-    <Compile Include="IfcToCOBieLiteUK\MappingIfcBuildingStoreyToFloor.cs" />
+    <Compile Include="IfcToCOBieLiteUK\MappingIfcSpatialStructureElementToFloor.cs" />
     <Compile Include="IfcToCOBieLiteUK\MappingIfcElementToAsset.cs" />
     <Compile Include="IfcToCOBieLiteUK\MappingIfcProjectToProject.cs" />
     <Compile Include="IfcToCOBieLiteUK\MappingIfcBuildingToFacility.cs" />
     <Compile Include="IfcToCOBieLiteUK\MappingIfcSiteToSite.cs" />
-    <Compile Include="IfcToCOBieLiteUK\MappingIfcSpaceToSpace.cs" />
+    <Compile Include="IfcToCOBieLiteUK\MappingIfcSpatialStructureElementToSpace.cs" />
     <Compile Include="IfcToCOBieLiteUK\MappingIfcSystemToSystem.cs" />
     <Compile Include="IfcToCOBieLiteUK\MappingXbimIfcProxyTypeObjectToAssetType.cs" />
     <Compile Include="IfcToCOBieLiteUK\MappingIfcZoneToZone.cs" />
@@ -157,10 +157,6 @@
     <Compile Include="XbimExchanger.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Xbim.COBieLite\COBieAttributes.config">
-      <Link>COBieAttributes.config</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <EmbeddedResource Include="DPoWToCOBieLite\ClassificationMappings.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>

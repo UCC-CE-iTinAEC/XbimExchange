@@ -47,6 +47,8 @@ namespace Xbim.DPoW
         /// </summary>
         public List<Job> Jobs { get; set; }
 
+        public bool Required { get; set; }
+
         /// <summary>
         /// Constructor of documentation object. It sets Id to new GUID.
         /// </summary>

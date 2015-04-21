@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Xbim.Ifc2x3.ExternalReferenceResource;
 using Xbim.XbimExtensions;
 using SystemConvert = System.Convert;
@@ -23,6 +24,7 @@ using Xbim.IO;
 using Xbim.XbimExtensions.SelectTypes;
 using XbimExchanger.COBieLiteHelpers;
 using XbimExchanger.IfcHelpers;
+using Assembly = System.Reflection.Assembly;
 using Attribute = Xbim.COBieLiteUK.Attribute;
 
 
@@ -53,7 +55,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
             /// </summary>
             /// <param name="propertySetName"></param>
             /// <param name="propertyName"></param>
-            public NamedProperty(string propertySetName, string propertyName )
+            public NamedProperty(string propertySetName, string propertyName)
                 : this()
             {
                 PropertyName = propertyName;
@@ -74,6 +76,37 @@ namespace XbimExchanger.COBieLiteUkToIfc
                 var config = ConfigurationManager.OpenMappedExeConfiguration(configMap, ConfigurationUserLevel.None);
                 var cobiePropertyMaps = (AppSettingsSection)config.GetSection("COBiePropertyMaps");
 
+
+            var tmpFile = Path.GetTempPath() + Guid.NewGuid().ToString() + ".csv";
+
+            var asss = Assembly.GetExecutingAssembly();
+
+            using (var input = asss.GetManifestResourceStream("XbimExchanger.IfcToCOBieLiteUK.COBieAttributes.config"))
+            using (var output = File.Create(tmpFile))
+            {
+                if (input != null) input.CopyTo(output);
+            }
+
+
+
+            Configuration config;
+            AppSettingsSection cobiePropertyMaps;
+
+            if (!File.Exists(tmpFile))
+            {
+                var directory = new DirectoryInfo(".");
+                throw new Exception(
+                    string.Format(
+                        @"Error loading configuration file ""{0}"". App folder is ""{1}"".", tmpFile,
+                        directory.FullName)
+                    );
+            }
+
+            try
+            {
+                var configMap = new ExeConfigurationFileMap { ExeConfigFilename = tmpFile };
+                config = ConfigurationManager.OpenMappedExeConfiguration(configMap, ConfigurationUserLevel.None);
+                cobiePropertyMaps = (AppSettingsSection)config.GetSection("COBiePropertyMaps");
                 foreach (KeyValueConfigurationElement keyVal in cobiePropertyMaps.Settings)
                 {
                     var values = keyVal.Value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
@@ -85,11 +118,18 @@ namespace XbimExchanger.COBieLiteUkToIfc
                             CobieToIfcPropertyMap.Add(keyVal.Key, new NamedProperty(names[0], names[1]));
                     }
                 }
+
             }
-            catch
+            catch (Exception ex)
             {
-                // Carry on
+                var directory = new DirectoryInfo(".");
+                throw new Exception(
+                    @"Error loading configuration file ""COBieAttributes.config"". App folder is " + directory.FullName,
+                    ex);
             }
+
+
+
         }
         #endregion
 
@@ -99,11 +139,11 @@ namespace XbimExchanger.COBieLiteUkToIfc
             new Dictionary<IfcObjectDefinition, List<IfcPropertySetDefinition>>();
         private readonly Dictionary<string, IfcUnit> _units = new Dictionary<string, IfcUnit>();
         private readonly Dictionary<string, IfcSpatialStructureElement> _spaceLookup = new Dictionary<string, IfcSpatialStructureElement>();
-        private readonly Dictionary<string,IfcClassification> _classificationSystems = new Dictionary<string, IfcClassification>();
+        private readonly Dictionary<string, IfcClassification> _classificationSystems = new Dictionary<string, IfcClassification>();
         private readonly Dictionary<string, IfcClassificationReference> _classificationReferences = new Dictionary<string, IfcClassificationReference>();
-      
-        private  Dictionary<IfcClassificationReference,IfcRelAssociatesClassification>  _classificationRelationships = new Dictionary<IfcClassificationReference, IfcRelAssociatesClassification>();
-        
+
+        private Dictionary<IfcClassificationReference, IfcRelAssociatesClassification> _classificationRelationships = new Dictionary<IfcClassificationReference, IfcRelAssociatesClassification>();
+
         #endregion
 
         #region Properties
@@ -194,7 +234,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
                 c.ContextType = "Model";
                 c.ContextIdentifier = "Body";
                 c.ParentContext = TargetRepository.IfcProject.ModelContext();
-                c.TargetView=IfcGeometricProjectionEnum.MODEL_VIEW;
+                c.TargetView = IfcGeometricProjectionEnum.MODEL_VIEW;
             }
             );
         }
@@ -261,7 +301,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
         /// <returns></returns>
         public override XbimModel Convert()
         {
-            Convert(SourceRepository);         
+            Convert(SourceRepository);
             return TargetRepository;
         }
         #endregion
@@ -331,7 +371,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
         }
         private void LoadUnits()
         {
-           //var units = TargetRepository.Instances.OfType<IfcUnit>().ToDictionary(k => k.GetName());
+            //var units = TargetRepository.Instances.OfType<IfcUnit>().ToDictionary(k => k.GetName());
         }
 
         private void LoadPropertySetDefinitions()
@@ -388,7 +428,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
                         propertySet.Name = namedProperty.PropertySetName;
                         var relDef = TargetRepository.Instances.New<IfcRelDefinesByProperties>();
                         relDef.RelatingPropertyDefinition = propertySet;
-                        relDef.RelatedObjects.Add(ifcObject);                   
+                        relDef.RelatedObjects.Add(ifcObject);
                     }
                     AddProperty(ifcObject, new IfcText(value), cobiePropertyName, propertySet, namedProperty);
                     return true;
@@ -413,7 +453,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
         /// <param name="defaultUnits">Units to use if the COBie property does not specify</param>
         internal bool TryCreatePropertySingleValue(IfcObject ifcObject, AttributeValue valueBaseType, string cobiePropertyName, IfcUnitConverter? defaultUnits)
         {
-            if (valueBaseType==null) return false; //nothing to do
+            if (valueBaseType == null) return false; //nothing to do
             try
             {
                 NamedProperty namedProperty;
@@ -424,12 +464,12 @@ namespace XbimExchanger.COBieLiteUkToIfc
                     List<IfcPropertySetDefinition> propertySetDefinitionList;
                     if (!_objectsToPropertySets.TryGetValue(ifcObject, out propertySetDefinitionList))
                     {
-                          propertySetDefinitionList = new List<IfcPropertySetDefinition>();
+                        propertySetDefinitionList = new List<IfcPropertySetDefinition>();
                         _objectsToPropertySets.Add(ifcObject, propertySetDefinitionList);
                     }
                     var propertySetDef = propertySetDefinitionList.Find(p => p.Name == namedProperty.PropertySetName);
-                        //see what sets we have against this object
-                    if (propertySetDef==null)
+                    //see what sets we have against this object
+                    if (propertySetDef == null)
                     {
 
                         //simplistic way to decide if this should be a quantity, IFC 4 specifies the name starts with QTO, under 2x3 most vendors have gone for BaseQuantities
@@ -476,17 +516,17 @@ namespace XbimExchanger.COBieLiteUkToIfc
                     }
                     return true;
                 }
-                throw new ArgumentException("Incorrect property map","cobiePropertyName");
+                throw new ArgumentException("Incorrect property map", "cobiePropertyName");
             }
             catch (Exception e)
             {
-                Debug.WriteLine("Incorrect property map, "+e.Message);
+                Debug.WriteLine("Incorrect property map, " + e.Message);
                 Debug.Assert(false);
                 return false;
             }
         }
 
-       
+
 
 
         private void AddProperty(IfcObject ifcObject, IfcValue value, string cobiePropertyName, IfcPropertySet propertySet,
@@ -523,7 +563,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
                 IfcPhysicalQuantity quantity;
 
                 switch (actualUnits.UnitName)
-                    //they are all here for future proofing, time, mass and count though are not really used by COBie
+                //they are all here for future proofing, time, mass and count though are not really used by COBie
                 {
                     case IfcUnitEnum.AREAUNIT:
                         quantity =
@@ -561,7 +601,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
                 quantity.Description = "Converted from COBie " + cobiePropertyName;
                 quantity.Name = namedProperty.PropertyName;
                 propertySetDefinition.Quantities.Add(quantity);
-              
+
             }
             catch (Exception e)
             {
@@ -569,7 +609,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
             }
         }
 
-       
+
         internal void ConvertAttributeTypeToIfcObjectProperty(IfcObjectDefinition ifcObjectDefinition, Attribute attributeType)
         {
             //need to add in consideration for quantities not just properties
@@ -586,11 +626,11 @@ namespace XbimExchanger.COBieLiteUkToIfc
         internal IfcSimpleProperty ConvertAttributeToIfcSimpleProperty(Attribute attributeType)
         {
             var attributeValue = attributeType.Value;
-           
+
             IfcSimpleProperty theProperty;
 
             var simplePropertyType = attributeValue.SimplePropertyType();
-              switch (simplePropertyType)
+            switch (simplePropertyType)
             {
                 case XbimSimplePropertyType.SimpleDecimal:
                 case XbimSimplePropertyType.SimpleInteger:
@@ -611,7 +651,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
                 default:
                     throw new ArgumentOutOfRangeException("attributeType", "Invalid attribute value type");
             }
-            
+
             theProperty.Name = attributeType.Name;
             theProperty.Description = attributeType.Description;
 
@@ -642,7 +682,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
                         var boundedDecimal = attributeValue as DecimalAttributeValue;
                         if (boundedDecimal != null)
                         {
-                            var boundedProperty = (IfcPropertyBoundedValue) theProperty;
+                            var boundedProperty = (IfcPropertyBoundedValue)theProperty;
                             if (boundedDecimal.MaximalValue.HasValue)
                                 boundedProperty.UpperBoundValue = new IfcReal(boundedDecimal.MaximalValue.Value);
                             if (boundedDecimal.MinimalValue.HasValue)
@@ -658,7 +698,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
                         }
                         break;
                     case XbimSimplePropertyType.BoundedInteger:
-                        var attributeBoundedIntegerValueType = attributeValue as IntegerAttributeValue;                        
+                        var attributeBoundedIntegerValueType = attributeValue as IntegerAttributeValue;
                         if (attributeBoundedIntegerValueType != null)
                         {
                             var boundedIntegerProperty = (IfcPropertyBoundedValue)theProperty;
@@ -745,16 +785,16 @@ namespace XbimExchanger.COBieLiteUkToIfc
         internal void CreateObjectGeometry(IfcElement ifcElement, int index)
         {
             var rectProfile = TargetRepository.Instances.New<IfcRectangleProfileDef>();
-            var dims = TargetRepository.ModelFactors.OneMilliMeter*100;
+            var dims = TargetRepository.ModelFactors.OneMilliMeter * 100;
             rectProfile.Position = MakeAxis2Placement2D();
             rectProfile.XDim = dims;
             rectProfile.YDim = dims;
-            rectProfile.ProfileType=IfcProfileTypeEnum.AREA;
+            rectProfile.ProfileType = IfcProfileTypeEnum.AREA;
             //extrude it
             var extrusion = TargetRepository.Instances.New<IfcExtrudedAreaSolid>();
             extrusion.Depth = dims;
             extrusion.ExtrudedDirection = _downDirection;
-            extrusion.Position = MakeAxis2Placement3D();      
+            extrusion.Position = MakeAxis2Placement3D();
             extrusion.SweptArea = rectProfile;
             //locate it
             ifcElement.ObjectPlacement = MakeLocalPlacement(_assetTypeInfoTypeNumber * dims * 1.2, 0, index * dims * 1.2);
@@ -781,7 +821,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
             var localPlacement = TargetRepository.Instances.New<IfcLocalPlacement>();
             var axisPlacement3D = MakeAxis2Placement3D();
             localPlacement.RelativePlacement = axisPlacement3D;
-            axisPlacement3D.Location = TargetRepository.Instances.New <IfcCartesianPoint>(c=>c.SetXYZ(xDisplacement, yDisplacement, zDisplacement));
+            axisPlacement3D.Location = TargetRepository.Instances.New<IfcCartesianPoint>(c => c.SetXYZ(xDisplacement, yDisplacement, zDisplacement));
             return localPlacement;
         }
 
@@ -804,7 +844,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
         /// </summary>
         internal void BeginAssetTypeInfoType()
         {
-            
+
         }
 
         internal void EndAssetTypeInfoType()
@@ -817,12 +857,12 @@ namespace XbimExchanger.COBieLiteUkToIfc
         /// </summary>
         /// <param name="space"></param>
         /// <returns></returns>
-        public bool AddToSpaceMap( IfcSpatialStructureElement space)
+        public bool AddToSpaceMap(IfcSpatialStructureElement space)
         {
             if (!space.Name.HasValue) return false;
-            string key = space.GetType().Name + ":" + space.Name;
-            if ( _spaceLookup.ContainsKey(key)) return false;
-            _spaceLookup.Add(key,space);
+            string key = space.Name;
+            if (_spaceLookup.ContainsKey(key)) return false;
+            _spaceLookup.Add(key, space);
             return true;
         }
 
@@ -849,11 +889,11 @@ namespace XbimExchanger.COBieLiteUkToIfc
         /// <param name="ifcElement"></param>
         public void ConvertCategoryToClassification(Category category, IfcRoot ifcElement)
         {
-            if(String.IsNullOrEmpty(category.Classification) && string.IsNullOrEmpty(category.Code))
+            if (String.IsNullOrEmpty(category.Classification) && string.IsNullOrEmpty(category.Code))
                 return;
 
             IfcClassification classificationSystem;
-            if ( String.IsNullOrEmpty(category.Classification) ||  
+            if (String.IsNullOrEmpty(category.Classification) ||
                 !_classificationSystems.TryGetValue(category.Classification, out classificationSystem))
             {
                 classificationSystem = TargetRepository.Instances.New<IfcClassification>();
@@ -918,14 +958,14 @@ namespace XbimExchanger.COBieLiteUkToIfc
             if (integerType != null)
                 return new IfcInteger((int)SystemConvert.ChangeType(integerType.Value, typeof(int)));
             var booleanType = valueBaseType as BooleanAttributeValue;
-            if (booleanType != null )
+            if (booleanType != null)
                 return new IfcBoolean((bool)SystemConvert.ChangeType(booleanType.Value, typeof(bool)));
             return default(IfcText);
         }
 
 
         internal void AddSpaceToZone(SpaceKey spaceKey, IfcZone ifcZone)
-        {           
+        {
             var relationship = TargetRepository.Instances.OfType<IfcRelAssignsToGroup>().FirstOrDefault(r => r.RelatingGroup == ifcZone);
             if (relationship == null)
             {
