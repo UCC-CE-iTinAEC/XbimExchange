@@ -70,8 +70,12 @@ namespace XbimExchanger.DPoWToCOBieLite
             if (sFacility == null) return;
             target.FacilityDescription = sFacility.Description;
             target.FacilityName = sFacility.Name;
-            var sFacilityCategory = sFacility.GetCategory(source);
+
+            Classification sFacilityClassification;
+            ClassificationReference sFacilityCategory;
+            sFacility.GetCategory(source, out sFacilityClassification, out sFacilityCategory);
             target.FacilityCategory = sFacilityCategory != null ? sFacilityCategory.ClassificationCode : null;
+            
             if (!String.IsNullOrWhiteSpace(sFacility.SiteName))
                 target.SiteAssignment = new SiteType
                 {

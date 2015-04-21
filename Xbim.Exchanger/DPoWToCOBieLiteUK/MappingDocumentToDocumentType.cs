@@ -21,9 +21,6 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
 
             if(tObject.Categories == null) tObject.Categories = new List<Category>();
             tObject.Categories.AddRange(Exchanger.SourceRepository.GetEncodedClassification(sObject.ClassificationReferenceIds));
-
-            // Add required classification to documents
-            if (sObject.Required) tObject.Categories.Add(new Category{ Code = "required" , Classification = "DPoW"});
                 
             //Issues from Jobs + Responsibilities
             if (sObject.Jobs != null && sObject.Jobs.Any())

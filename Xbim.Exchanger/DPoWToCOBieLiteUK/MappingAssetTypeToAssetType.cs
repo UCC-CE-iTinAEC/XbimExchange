@@ -36,9 +36,6 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
                 Name = sObject.Name
             });
 
-            // Mark asset types as required
-            tObject.Categories = new List<Category> { new Category { Code = "required", Classification = "DPoW" } };
-
             return tObject;
         }
     }

@@ -34,10 +34,18 @@ namespace Xbim.DPoW
         /// </summary>
         /// <param name="pow"></param>
         /// <returns></returns>
-        public ClassificationReference GetCategory(PlanOfWork pow)
+        public void GetCategory(PlanOfWork pow, out Classification classification, out ClassificationReference classificationReference)
         {
-            if (pow.ClassificationSystems == null) return null;
-            return (from classification in pow.ClassificationSystems where classification.ClassificationReferences != null from reference in classification.ClassificationReferences where reference.Id == CategoryId select reference).FirstOrDefault();
+            classification = null;
+            classificationReference = null;
+
+            if (pow.ClassificationSystems == null) return;
+            
+            var result = (from c in pow.ClassificationSystems where c.ClassificationReferences != null from r in c.ClassificationReferences where r.Id == CategoryId select new { c, r }).FirstOrDefault();
+            if (result == null) return;
+
+            classification = result.c;
+            classificationReference = result.r;
         }
     }
 }
