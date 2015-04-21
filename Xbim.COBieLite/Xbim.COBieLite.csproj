@@ -138,6 +138,7 @@
   <ItemGroup>
     <EmbeddedResource Include="COBieAttributes.config">
       <SubType>Designer</SubType>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <None Include="COBieLite Schema\cobielite.xsd">
       <SubType>Designer</SubType>
