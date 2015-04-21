@@ -67,14 +67,8 @@ namespace XbimExchanger.COBieLiteUkToIfc
         #region Static members and functions
         static IDictionary<string, NamedProperty> CobieToIfcPropertyMap = new Dictionary<string, NamedProperty>();
 
-
         static CoBieLiteUkToIfcExchanger()
         {
-            try
-            {
-                var configMap = new ExeConfigurationFileMap { ExeConfigFilename = "COBieAttributes.config" };
-                var config = ConfigurationManager.OpenMappedExeConfiguration(configMap, ConfigurationUserLevel.None);
-                var cobiePropertyMaps = (AppSettingsSection)config.GetSection("COBiePropertyMaps");
 
 
             var tmpFile = Path.GetTempPath() + Guid.NewGuid().ToString() + ".csv";
