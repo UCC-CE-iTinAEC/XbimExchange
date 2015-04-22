@@ -106,16 +106,15 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
             if (sFacility == null) return;
             target.Description = sFacility.Description;
             target.Name = sFacility.Name;
-
-            Classification sFacilityClassification;
-            ClassificationReference sFacilityCategory;
-            sFacility.GetCategory(source, out sFacilityClassification, out sFacilityCategory);
-
-            if (sFacilityClassification != null && sFacilityCategory != null)
+            var sFacilityCategory = sFacility.GetClassificationAndReference(source);
+            if (sFacilityCategory != null)
             {
-                target.Categories = new List<Category> { new Category { Classification = sFacilityClassification.Name, Code = sFacilityCategory.ClassificationCode } };
+                target.Categories = new List<Category>
+                {
+                    new Category { Code = sFacilityCategory.Item2.ClassificationCode, Description = sFacilityCategory.Item2.ClassificationDescription, Classification = sFacilityCategory.Item1.Name},
+                    new Category { Code = "required", Description = "DPoW"}
+                };
             }
-
             if (!String.IsNullOrWhiteSpace(sFacility.SiteName))
                 target.Site = new Site
                 {

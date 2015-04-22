@@ -47,5 +47,24 @@ namespace Xbim.DPoW
             classification = result.c;
             classificationReference = result.r;
         }
+
+        /// <summary>
+        /// Gets category from actual plan of work by it's ID
+        /// </summary>
+        /// <param name="pow"></param>
+        /// <returns></returns>
+        public Tuple<Classification, ClassificationReference> GetClassificationAndReference(PlanOfWork pow)
+        {
+            if (pow.ClassificationSystems == null) return null;
+            foreach (var classification in pow.ClassificationSystems)
+            {
+                if (classification.ClassificationReferences == null) continue;
+                var reference = classification.ClassificationReferences.FirstOrDefault(r => r.Id == CategoryId);
+                if(reference == null) continue;
+                return new Tuple<Classification, ClassificationReference>(classification, reference);
+            }
+
+            return null;
+        }
     }
 }
