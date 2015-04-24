@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.IO;
@@ -7,9 +8,8 @@ using NPOI.HSSF.UserModel;
 using NPOI.SS.UserModel;
 using NPOI.SS.Util;
 using NPOI.XSSF.UserModel;
-using Xbim.COBieLiteUK;
 using Xbim.Common.Logging;
-using System.Collections.Generic;
+using Xbim.COBieLiteUK;
 
 namespace Xbim.CobieLiteUK.Validation.Reporting
 {
@@ -54,7 +54,9 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             {
                 using (var spreadsheetStream = new FileStream(ssFileName, FileMode.Create, FileAccess.Write))
                 {
-                    return Create(facility, spreadsheetStream, format);
+                    var result = Create(facility, spreadsheetStream, format);
+                    spreadsheetStream.Close();
+                    return result;
                 }
             }
             catch (Exception e)
@@ -261,7 +263,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 }
                 iRunningRow++;
 
-                var writer = new ExcelCellVisualValue(BorderStyle.Thin);
+                var writer = new ExcelCellVisualValue(detailSheet.Workbook);
                 foreach (DataRow row in table.Rows)
                 {
                     excelRow = detailSheet.GetRow(iRunningRow) ?? detailSheet.CreateRow(iRunningRow);
@@ -384,7 +386,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 }
                 iRunningRow++;
 
-                var writer = new ExcelCellVisualValue(BorderStyle.Thin);
+                var writer = new ExcelCellVisualValue(detailSheet.Workbook);
                 foreach (DataRow row in table.Rows)
                 {
                     excelRow = detailSheet.GetRow(iRunningRow) ?? detailSheet.CreateRow(iRunningRow);
@@ -454,15 +456,25 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 SetHeader(excelCell);
                 excelCell.SetCellValue("Facility summary");
                 var iRunningRow = 2;
-                
-                var assetTypesReport = new GroupingObjectSummaryReport<CobieObject>(facility.AssetTypes, "Asset types report");
-                iRunningRow = WriteReportToPage(summaryPage, assetTypesReport.GetReport(PreferredClassification), iRunningRow);
 
-                var zonesReport = new GroupingObjectSummaryReport<CobieObject>(facility.Zones, "Zones report");
-                iRunningRow = WriteReportToPage(summaryPage, zonesReport.GetReport(PreferredClassification), iRunningRow);
+                if (facility.AssetTypes != null && facility.AssetTypes.Any())
+                {
+                    var assetTypesReport = new GroupingObjectSummaryReport<CobieObject>(facility.AssetTypes, "Asset types report");
+                    iRunningRow = WriteReportToPage(summaryPage, assetTypesReport.GetReport(PreferredClassification), iRunningRow);
+                }
 
-                var docReport = new DocumentsReport(facility.Documents);
-                iRunningRow = WriteReportToPage(summaryPage, docReport.GetReport("ResponsibleRole"), iRunningRow);
+                if (facility.Zones != null && facility.Zones.Any())
+                {
+                    var zonesReport = new GroupingObjectSummaryReport<CobieObject>(facility.Zones, "Zones report");
+                    iRunningRow = WriteReportToPage(summaryPage, zonesReport.GetReport(PreferredClassification),
+                        iRunningRow);
+                }
+
+                if (facility.Documents != null && facility.Documents.Any())
+                {
+                    var docReport = new DocumentsReport(facility.Documents);
+                    iRunningRow = WriteReportToPage(summaryPage, docReport.GetReport("ResponsibleRole"), iRunningRow);
+                }
 
                 Debug.WriteLine(iRunningRow);
                 return true;
@@ -515,7 +527,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             }
 
             startingRow++;
-            var writer = new ExcelCellVisualValue(BorderStyle.Thin);
+            var writer = new ExcelCellVisualValue(summaryPage.Workbook);
             foreach (DataRow row in table.Rows)
             {
                 excelRow = summaryPage.GetRow(startingRow) ?? summaryPage.CreateRow(startingRow);

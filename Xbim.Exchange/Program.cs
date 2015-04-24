@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Xbim.CobieLiteUK.Validation;
+using Xbim.CobieLiteUK.Validation.Reporting;
 using Xbim.COBieLiteUK;
 using Xbim.IO;
 using Xbim.ModelGeometry.Scene;
@@ -76,8 +78,22 @@ namespace Xbim.Exchange
                         dPoWFile = Path.ChangeExtension(dPoWFile, "xml");
                         Console.WriteLine("Creating " + dPoWFile);
                        // facility.WriteXml(dPoWFile);
-                       
-                        //facility.ValidateUK2012();
+                        var req = Facility.ReadJson(@"..\..\Tests\ValidationFiles\Lakeside_Restaurant-stage6-COBie.json");
+                        var validator = new FacilityValidator();
+                        var result = validator.Validate(req, facility);
+                        var verificationResults = Path.ChangeExtension(dPoWFile, "verified.xlsx");
+                        Console.WriteLine("Creating " + verificationResults);
+                        //create report
+                        using (var stream = File.Create(verificationResults))
+                        {
+                            var report = new ExcelValidationReport();
+                            report.Create(result, stream, ExcelValidationReport.SpreadSheetFormat.Xlsx);
+                            stream.Close();
+                        }
+
+                        facility.ValidateUK2012(Console.Out,true);
+                        string cobieValidatedFile = Path.ChangeExtension(dPoWFile, "Validated.Xlsx");
+                        facility.WriteCobie(cobieValidatedFile, out error);
                         dPoWFile = Path.ChangeExtension(dPoWFile, "xbim");
                         Console.WriteLine("Creating " + dPoWFile);
                         using (var ifcModel = XbimModel.CreateModel(dPoWFile))

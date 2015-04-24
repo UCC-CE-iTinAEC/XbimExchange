@@ -31,6 +31,9 @@ namespace XbimExchanger.IfcToCOBieLiteUK
             var ifcTypeObject = proxyIfcTypeObject.IfcTypeObject;
             List<IfcElement> allAssetsofThisType;
             helper.DefiningTypeObjectMap.TryGetValue(proxyIfcTypeObject, out allAssetsofThisType);
+
+            target.Warranty = new Warranty {GuarantorLabor = new ContactKey {Email = helper.XbimCreatedBy.Email}};
+            target.Warranty.GuarantorParts = target.Warranty.GuarantorLabor;
             if (ifcTypeObject != null)
             {
                 var manuf = helper.GetCoBieProperty("AssetTypeManufacturer", ifcTypeObject);
@@ -75,7 +78,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
                 target.CodePerformance = helper.GetCoBieProperty("AssetTypeCodePerformance", ifcTypeObject);
                 target.Finish = helper.GetCoBieProperty("AssetTypeFinishDescription", ifcTypeObject);
 
-                target.Warranty = new Warranty();
+                
                 target.Warranty.Description = helper.GetCoBieProperty("AssetTypeWarrantyDescription", ifcTypeObject);
                 target.Warranty.DurationLabor = helper.GetCoBieAttribute<DecimalAttributeValue>("AssetTypeWarrantyDurationLabor", ifcTypeObject).Value;
                 target.Warranty.DurationParts = helper.GetCoBieAttribute<DecimalAttributeValue>("AssetTypeWarrantyDurationParts", ifcTypeObject).Value;
@@ -84,9 +87,12 @@ namespace XbimExchanger.IfcToCOBieLiteUK
                 if (Enum.TryParse(helper.GetCoBieProperty("AssetTypeWarrantyDurationUnit", ifcTypeObject), true,
                     out unit))
                     target.Warranty.DurationUnit = unit;
-
-                target.Warranty.GuarantorLabor = helper.GetOrCreateContactKey(helper.GetCoBieProperty("AssetTypeWarrantyGuarantorLabor", ifcTypeObject));
-                target.Warranty.GuarantorParts = helper.GetOrCreateContactKey(helper.GetCoBieProperty("AssetTypeWarrantyGuarantorParts", ifcTypeObject));
+                var laborContact = helper.GetCoBieProperty("AssetTypeWarrantyGuarantorLabor", ifcTypeObject);
+                if(!string.IsNullOrWhiteSpace(laborContact))
+                    target.Warranty.GuarantorLabor = helper.GetOrCreateContactKey(laborContact);
+                var partsContact = helper.GetCoBieProperty("AssetTypeWarrantyGuarantorParts", ifcTypeObject);
+                if (!string.IsNullOrWhiteSpace(partsContact))
+                    target.Warranty.GuarantorParts = helper.GetOrCreateContactKey(partsContact);
                 //Attributes
                 target.Attributes = helper.GetAttributes(ifcTypeObject);
             }
