@@ -94,6 +94,12 @@
     <None Include="RIBAETestFiles\001-Kenton_High_School_Model.ifc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="RIBAETestFiles\003-Lakeside_Restaurant-stage1-COBie.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="RIBAETestFiles\003-Lakeside_Restaurant-stage6-COBie.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="RIBAETestFiles\Duplex_A_20110907_optimized.ifc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

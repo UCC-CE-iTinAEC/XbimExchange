@@ -112,7 +112,6 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
                 target.Categories = new List<Category>
                 {
                     new Category { Code = sFacilityCategory.Item2.ClassificationCode, Description = sFacilityCategory.Item2.ClassificationDescription, Classification = sFacilityCategory.Item1.Name},
-                    new Category { Code = "required", Description = "DPoW"}
                 };
             }
             if (!String.IsNullOrWhiteSpace(sFacility.SiteName))

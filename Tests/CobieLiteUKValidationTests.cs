@@ -7,11 +7,13 @@ using Xbim.CobieLiteUK.Validation.Reporting;
 using Xbim.COBieLiteUK;
 using Xbim.IO;
 using XbimExchanger.IfcToCOBieLiteUK;
+using System;
 
 namespace Tests
 {
     [TestClass]
     [DeploymentItem(@"ValidationFiles\")]
+    [DeploymentItem(@"RIBAETestFiles\")]
     public class CobieLiteUKValidationTests
     {
         [TestMethod]
@@ -51,7 +53,7 @@ namespace Tests
                 facilities = ifcToCoBieLiteUkExchanger.Convert();
                 sub = facilities.FirstOrDefault();
             }
-            Assert.IsTrue(sub!=null);
+            Assert.IsTrue(sub != null);
             var vd = new FacilityValidator();
             var req = Facility.ReadJson(requirementFile);
             var validated = vd.Validate(req, sub);
@@ -79,7 +81,7 @@ namespace Tests
             var req = Facility.ReadJson(@"c:\Users\mxfm2\Dropbox\Martin\003-Lakeside_Restaurant-stage6-COBie.json");
             var validator = new FacilityValidator();
             var result = validator.Validate(req, cobie);
-            
+
             //create report
             using (var stream = File.Create(@"c:\Users\mxfm2\Dropbox\Martin\Lakeside_Restaurant_fabric_only.report.xlsx"))
             {
@@ -115,6 +117,114 @@ namespace Tests
             var validator = new FacilityValidator();
             var result = validator.Validate(req, cobie);
             return result;
+        }
+
+        [TestMethod]
+        public void VerifyCobie()
+        {
+            string reportBlobName = string.Format("{0}{1}", "output", ".json");
+            string ext = ".ifc";
+            string ext2 = ".json";
+
+            Stream input = File.OpenRead("NBS_LakesideRestaurant_small_optimized.ifc");
+            Stream inputRequirements = File.OpenRead("003-Lakeside_Restaurant-stage6-COBie.json"); 
+            
+            Facility facility = null;
+            string msg;
+            switch (ext)
+            {
+                case ".ifc":
+                case ".ifczip":
+                case ".ifcxml":
+                    facility = GetFacilityFromIfc(input, ".ifc");
+                    break;
+                case ".json":
+                    facility = Facility.ReadJson(input);
+                    break;
+                case ".xml":
+                    facility = Facility.ReadXml(input);
+                    break;
+                case ".xls":
+                    facility = Facility.ReadCobie(input, ExcelTypeEnum.XLS, out msg);
+                    break;
+                case ".xlsx":
+                    facility = Facility.ReadCobie(input, ExcelTypeEnum.XLSX, out msg);
+                    break;
+            }
+
+
+            Facility requirements = null;
+            switch (ext2)
+            {
+                case ".xml":
+                    requirements = Facility.ReadXml(inputRequirements);
+                    break;
+                case ".json":
+                    requirements = Facility.ReadJson(inputRequirements);
+                    break;
+                case ".xls":
+                    requirements = Facility.ReadCobie(inputRequirements, ExcelTypeEnum.XLS, out msg);
+                    break;
+                case ".xlsx":
+                    requirements = Facility.ReadCobie(inputRequirements, ExcelTypeEnum.XLSX, out msg);
+                    break;
+            }
+
+            if (facility == null || requirements == null)
+                return;
+
+            var vd = new FacilityValidator();
+            var validated = vd.Validate(requirements, facility);
+            using (var repStream = File.OpenWrite(reportBlobName))
+            {
+                validated.WriteJson(repStream);
+                repStream.Close();
+            }
+
+            var rep = new ExcelValidationReport();
+            var temp = Path.Combine(Path.GetTempPath(), Path.ChangeExtension(Path.GetTempFileName(), ".xlsx"));
+
+            try
+            {
+                rep.Create(facility, temp, ExcelValidationReport.SpreadSheetFormat.Xlsx);
+            }
+            finally
+            {
+                if (File.Exists(temp)) File.Delete(temp);
+            }
+
+        }
+
+        private static Facility GetFacilityFromIfc(Stream file, string extension)
+        {
+            var temp = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + extension);
+            try
+            {
+                //store temporarily
+                using (var fileStream = File.OpenWrite(temp))
+                {
+                    file.CopyTo(fileStream);
+                    fileStream.Flush();
+                    fileStream.Close();
+                }
+
+                using (var model = new XbimModel())
+                {
+                    model.CreateFrom(temp, null, null, true);
+
+                    var facilities = new List<Facility>();
+                    var ifcToCoBieLiteUkExchanger = new IfcToCOBieLiteUkExchanger(model, facilities);
+
+                    return ifcToCoBieLiteUkExchanger.Convert().FirstOrDefault();
+                }
+            }
+            //tidy up
+            finally
+            {
+                if (File.Exists(temp)) File.Delete(temp);
+            }
+
+
         }
     }
 }
