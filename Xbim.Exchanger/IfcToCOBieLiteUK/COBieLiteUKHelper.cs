@@ -777,24 +777,33 @@ namespace XbimExchanger.IfcToCOBieLiteUK
             foreach (var classification in classifications)
             {
                 var category = new Category();
+
                 if (classification.ReferencedSource != null)
-                    category.Classification = classification.ReferencedSource.Name;               
+                {
+                    category.Classification = classification.ReferencedSource.Name;
+                }
+
                 if (classification.ItemReference.HasValue && classification.Name.HasValue &&
                     string.CompareOrdinal(classification.ItemReference, classification.Name) == 0)
                 {
                     var strRef = classification.ItemReference.Value.ToString();
                     var parts = strRef.Split(new[] {':', ';', '/', '\\'}, StringSplitOptions.RemoveEmptyEntries);
                     if (parts.Length > 1)
+                    {
                         category.Description = parts[1];
-                    category.Code = parts[0];
+                        category.Code = parts[0];
+                    }
                 }
                 else
                 {
                     category.Code = classification.ItemReference;
                     category.Description = classification.Name;
                 }
-                if (category.Code != null && string.CompareOrdinal(category.Code.ToLower(),"n/a")!=0 )
+
+                if (category.Code != null && string.CompareOrdinal(category.Code.ToLower(), "n/a") != 0)
+                {
                     categories.Add(category);
+                }
             }
             return categories;
         }

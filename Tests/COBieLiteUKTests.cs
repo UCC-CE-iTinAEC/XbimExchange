@@ -570,29 +570,38 @@ namespace Tests
         [DeploymentItem("TestFiles\\OBN1-COBie-UK-2014.xlsx")]
         [TestMethod]
         [DeploymentItem("ValidationFiles\\Lakeside_Restaurant.ifc")]
+        [DeploymentItem("RIBAETestFiles\\001-Kenton_High_School_Model.ifc")]
+        [DeploymentItem("RIBAETestFiles\\001 Hello Wall.ifc")]
+        [DeploymentItem("RIBAETestFiles\\Duplex_A_20110907_optimized.ifc")]
+        [DeploymentItem("RIBAETestFiles\\NBS_LakesideRestaurant_small_optimized.ifc")]
+        [DeploymentItem("RIBAETestFiles\\Office_A_20110811_optimized.ifc")]
         public void IfcToCoBieLiteUkTest()
         {
-            using (var m = new XbimModel())
+            string[] testFiles = new string[] { "Lakeside_Restaurant.ifc", "001-Kenton_High_School_Model.ifc", "001 Hello Wall.ifc", "Duplex_A_20110907_optimized.ifc", "NBS_LakesideRestaurant_small_optimized.ifc", "Office_A_20110811_optimized.ifc" };
+
+            foreach (var ifcTestFile in testFiles)
             {
-                const string ifcTestFile = @"Lakeside_Restaurant.ifc";
-                var xbimTestFile = Path.ChangeExtension(ifcTestFile, "xbim");
-                var jsonFile = Path.ChangeExtension(ifcTestFile, "json");
-                m.CreateFrom(ifcTestFile, xbimTestFile, null, true, true);
-                var facilities = new List<Facility>();
-                var ifcToCoBieLiteUkExchanger = new IfcToCOBieLiteUkExchanger(m, facilities);
-                facilities = ifcToCoBieLiteUkExchanger.Convert();
-
-                foreach (var facilityType in facilities)
+                using (var m = new XbimModel())
                 {
-                    var log = new StringWriter();
-                    facilityType.ValidateUK2012(log, true);
+                    var xbimTestFile = Path.ChangeExtension(ifcTestFile, "xbim");
+                    var jsonFile = Path.ChangeExtension(ifcTestFile, "json");
+                    m.CreateFrom(ifcTestFile, xbimTestFile, null, true, true);
+                    var facilities = new List<Facility>();
+                    var ifcToCoBieLiteUkExchanger = new IfcToCOBieLiteUkExchanger(m, facilities);
+                    facilities = ifcToCoBieLiteUkExchanger.Convert();
 
-                    string msg;
-                    facilityType.WriteJson(jsonFile, true);
-                    facilityType.WriteCobie("..\\..\\Lakeside_Restaurant.xlsx", out msg, "UK2012", true);
+                    foreach (var facilityType in facilities)
+                    {
+                        var log = new StringWriter();
+                        facilityType.ValidateUK2012(log, true);
 
-                    
-                    break;
+                        string msg;
+                        facilityType.WriteJson(jsonFile, true);
+                        facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012", true);
+
+
+                        break;
+                    }
                 }
             }
         }
