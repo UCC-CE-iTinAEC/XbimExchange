@@ -61,6 +61,18 @@ namespace Tests
         }
 
         [TestMethod]
+        public void ValidateBrokenReqs()
+        {
+            const string xlsx = @"LakesideWithDocuments.xls";
+            string msg;
+            var cobie = Facility.ReadCobie(xlsx, out msg);
+            var req = Facility.ReadJson(System.IO.File.OpenRead(@"broken_reqs.requirements.json"));
+            var validator = new FacilityValidator();
+            var result = validator.Validate(req, cobie);
+            result.WriteJson(@"..\..\XlsLakesideWithDocumentsValidationStage6.json", true);
+        }
+
+        [TestMethod]
         public void ValidateXlsLakeside()
         {
             const string xlsx = @"LakesideWithDocuments.xls";

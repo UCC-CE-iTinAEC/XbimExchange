@@ -100,6 +100,9 @@
     <None Include="RIBAETestFiles\003-Lakeside_Restaurant-stage6-COBie.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="RIBAETestFiles\broken_reqs.requirements.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="RIBAETestFiles\Duplex_A_20110907_optimized.ifc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
