@@ -1199,7 +1199,11 @@ namespace Xbim.COBieLiteUK
             }
 
             //if not suitable type was found, report it as a bug
-            throw new Exception("Unsupported type " + type.Name + " for value '" + cell.ToString() + "'");
+            //throw new Exception("Unsupported type " + type.Name + " for value '" + cell.ToString() + "'");
+
+            log.WriteLine("Unsupported type {0} in cell {1}{2}, sheet {3}",
+                        info.Name, CellReference.ConvertNumToColString(cell.ColumnIndex), cell.RowIndex + 1,
+                        cell.Sheet.SheetName);
         }
 
         private static Dictionary<string, List<MappingAttribute>> _mappingAttrsCache =
