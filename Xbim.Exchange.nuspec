@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
     <metadata>
-        <id>Xbim.ExchangeRIBAE</id>
+        <id>Xbim.Exchange</id>
         <version>3.0.78-Prerelease</version>
         <title>xBIM Exchange</title>
         <authors>xBIM team</authors>
