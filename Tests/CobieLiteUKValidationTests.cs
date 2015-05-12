@@ -100,15 +100,15 @@ namespace Tests
         [TestMethod]
         public void ValidateXlsLakeside2()
         {
-            const string xlsx = @"c:\Users\mxfm2\Dropbox\Martin\Lakeside_Restaurant_fabric_only.xlsx";
+            const string xlsx = @"Submission_improved.xlsx";
             string msg;
             var cobie = Facility.ReadCobie(xlsx, out msg);
-            var req = Facility.ReadJson(@"c:\Users\mxfm2\Dropbox\Martin\003-Lakeside_Restaurant-stage6-COBie.json");
+            var req = Facility.ReadCobie(@"004-House_Refurbishment-stage6-COBie.xlsx", out msg);
             var validator = new FacilityValidator();
             var result = validator.Validate(req, cobie);
 
             //create report
-            using (var stream = File.Create(@"c:\Users\mxfm2\Dropbox\Martin\Lakeside_Restaurant_fabric_only.report.xlsx"))
+            using (var stream = File.Create(@"Lakeside_Restaurant_fabric_only.report.xlsx"))
             {
                 var report = new ExcelValidationReport();
                 report.Create(result, stream, ExcelValidationReport.SpreadSheetFormat.Xlsx);

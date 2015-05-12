@@ -100,6 +100,9 @@
     <None Include="RIBAETestFiles\003-Lakeside_Restaurant-stage6-COBie.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="RIBAETestFiles\004-House_Refurbishment-stage6-COBie.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="RIBAETestFiles\broken_reqs.requirements.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -110,6 +113,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="RIBAETestFiles\Office_A_20110811_optimized.ifc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="RIBAETestFiles\Submission_improved.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="TestFiles\001-Lakeside_Restaurant.dpow">
