@@ -107,13 +107,23 @@ namespace Tests
             var validator = new FacilityValidator();
             var result = validator.Validate(req, cobie);
 
-            //create report
-            using (var stream = File.Create(@"Lakeside_Restaurant_fabric_only.report.xlsx"))
+            ////create report
+            //using (var stream = File.Create(@"Lakeside_Restaurant_fabric_only.report.xlsx"))
+            //{
+            //    var report = new ExcelValidationReport();
+            //    report.Create(result, stream, ExcelValidationReport.SpreadSheetFormat.Xlsx);
+            //    stream.Close();
+            //}
+
+            string res;
+            using (var ms = new MemoryStream())
             {
-                var report = new ExcelValidationReport();
-                report.Create(result, stream, ExcelValidationReport.SpreadSheetFormat.Xlsx);
-                stream.Close();
+                result.WriteJson(ms);
+                var bytes = ms.ToArray();
+                res = System.Text.Encoding.UTF8.GetString(bytes);
             }
+
+            Assert.IsNotNull(res);
         }
 
         [TestMethod]
