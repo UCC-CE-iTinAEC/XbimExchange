@@ -17,7 +17,7 @@ namespace Tests
     public class CobieLiteUKValidationTests
     {
         [TestMethod]
-        public void CanSaveValidatedVacility()
+        public void CanSaveValidatedFacility()
         {
             var validated = GetValidated(@"Lakeside_Restaurant-stage6-COBie.json");
             validated.WriteJson(@"..\..\ValidationReport.json", true);
