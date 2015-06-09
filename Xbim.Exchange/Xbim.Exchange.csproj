@@ -11,7 +11,7 @@
     <AssemblyName>Xbim.Exchange</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>1a4bca5f</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>61408602</NuGetPackageImportStamp>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -51,19 +51,19 @@
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Esent.Interop">
+    <Reference Include="Esent.Interop, Version=1.9.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\ManagedEsent.1.9.2.0\lib\net40\Esent.Interop.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ICSharpCode.SharpZipLib">
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="log4net">
+    <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.6.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
@@ -74,32 +74,32 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Xbim.Common, Version=3.0.5625.38218, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xbim.Essentials.3.0.23\lib\net45\Xbim.Common.dll</HintPath>
+    <Reference Include="Xbim.Common, Version=3.0.5620.24387, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xbim.Essentials.3.0.20\lib\net45\Xbim.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Xbim.Geometry.Engine.Interop, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xbim.Geometry.3.0.22\lib\net45\Xbim.Geometry.Engine.Interop.dll</HintPath>
+      <HintPath>..\packages\Xbim.Geometry.3.0.21\lib\net45\Xbim.Geometry.Engine.Interop.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Xbim.Ifc.Extensions, Version=3.0.5625.38220, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xbim.Essentials.3.0.23\lib\net45\Xbim.Ifc.Extensions.dll</HintPath>
+    <Reference Include="Xbim.Ifc.Extensions, Version=3.0.5620.24390, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xbim.Essentials.3.0.20\lib\net45\Xbim.Ifc.Extensions.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Xbim.Ifc2x3, Version=3.0.5625.38218, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xbim.Essentials.3.0.23\lib\net45\Xbim.Ifc2x3.dll</HintPath>
+    <Reference Include="Xbim.Ifc2x3, Version=3.0.5620.24388, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xbim.Essentials.3.0.20\lib\net45\Xbim.Ifc2x3.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Xbim.IO, Version=3.0.5625.38221, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xbim.Essentials.3.0.23\lib\net45\Xbim.IO.dll</HintPath>
+    <Reference Include="Xbim.IO, Version=3.0.5620.24390, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xbim.Essentials.3.0.20\lib\net45\Xbim.IO.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Xbim.ModelGeometry.Scene, Version=3.0.5626.35354, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xbim.Geometry.3.0.22\lib\net45\Xbim.ModelGeometry.Scene.dll</HintPath>
+    <Reference Include="Xbim.ModelGeometry.Scene, Version=3.0.5624.26271, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Xbim.Geometry.3.0.21\lib\net45\Xbim.ModelGeometry.Scene.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Xbim.Tessellator, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Xbim.Geometry.3.0.22\lib\net45\Xbim.Tessellator.dll</HintPath>
+      <HintPath>..\packages\Xbim.Geometry.3.0.21\lib\net45\Xbim.Tessellator.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -110,24 +110,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Xbim.CobieLiteUK.Validation\Xbim.CobieLiteUK.Validation.csproj">
-      <Project>{D2D0B192-93B2-409F-AAA0-47BD3038C87E}</Project>
-      <Name>Xbim.CobieLiteUK.Validation</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xbim.COBieLiteUK\Xbim.COBieLiteUK.csproj">
-      <Project>{90DEF072-96C7-4972-835E-909C41169CB4}</Project>
-      <Name>Xbim.COBieLiteUK</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xbim.COBieLite\Xbim.COBieLite.csproj">
-      <Project>{E550C721-50AF-4AD0-998E-0C61F305EEC8}</Project>
-      <Name>Xbim.COBieLite</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Xbim.Exchanger\Xbim.Exchanger.csproj">
-      <Project>{5540768D-8ACD-4CC0-B3CD-1951DEF54C20}</Project>
-      <Name>Xbim.Exchanger</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5">
@@ -146,6 +128,24 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xbim.CobieLiteUK.Validation\Xbim.CobieLiteUK.Validation.csproj">
+      <Project>{d2d0b192-93b2-409f-aaa0-47bd3038c87e}</Project>
+      <Name>Xbim.CobieLiteUK.Validation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xbim.COBieLiteUK\Xbim.COBieLiteUK.csproj">
+      <Project>{90def072-96c7-4972-835e-909c41169cb4}</Project>
+      <Name>Xbim.COBieLiteUK</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xbim.DPoW\Xbim.DPoW.csproj">
+      <Project>{79e7f597-f509-49ec-a606-fdc8326e72f5}</Project>
+      <Name>Xbim.DPoW</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xbim.Exchanger\Xbim.Exchanger.csproj">
+      <Project>{5540768d-8acd-4cc0-b3cd-1951def54c20}</Project>
+      <Name>Xbim.Exchanger</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Xbim.Geometry.3.0.22\build\net45\Xbim.Geometry.targets" Condition="Exists('..\packages\Xbim.Geometry.3.0.22\build\net45\Xbim.Geometry.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -153,6 +153,7 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Xbim.Geometry.3.0.22\build\net45\Xbim.Geometry.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xbim.Geometry.3.0.22\build\net45\Xbim.Geometry.targets'))" />
+    <Error Condition="!Exists('..\packages\Xbim.Geometry.3.0.21\build\net45\Xbim.Geometry.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Xbim.Geometry.3.0.21\build\net45\Xbim.Geometry.targets'))" />
   </Target>
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
@@ -161,6 +162,7 @@
     </PropertyGroup>
     <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
   </Target>
+  <Import Project="..\packages\Xbim.Geometry.3.0.21\build\net45\Xbim.Geometry.targets" Condition="Exists('..\packages\Xbim.Geometry.3.0.21\build\net45\Xbim.Geometry.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
