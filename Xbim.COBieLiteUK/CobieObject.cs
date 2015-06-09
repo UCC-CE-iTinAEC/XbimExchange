@@ -350,7 +350,7 @@ namespace Xbim.COBieLiteUK
                 var isPicklist = !String.IsNullOrWhiteSpace(mapping.PickList);
 
                 //set default column style
-                cell.CellStyle = sheet.GetColumnStyle(cellIndex);
+                if (sheet.GetColumnStyle(cellIndex) != null) cell.CellStyle = sheet.GetColumnStyle(cellIndex);
 
                 //if it is a parent or parent name, set it differently
                 if (mapping.Path.ToLower() == "parent")
@@ -477,7 +477,8 @@ namespace Xbim.COBieLiteUK
             }
 
             //call for all child objects but with this as a parent
-            foreach (var child in GetChildren())
+            var children = GetChildren().ToArray();
+            foreach (var child in children)
             {
                 child.WriteToCobie(workbook, log, this, rowNumCache, pickValuesCache, headerCache, version);
             }
@@ -486,6 +487,7 @@ namespace Xbim.COBieLiteUK
         private void FixHeaderForWriting(IRow row, List<MappingAttribute> mappings)
         {
             if (row == null) return;
+
             foreach (var mapping in mappings)
             {
               
@@ -498,7 +500,7 @@ namespace Xbim.COBieLiteUK
                 }
                
                 if (cell.CellType == CellType.String && cell.StringCellValue.Trim() != mapping.Header)
-                    throw new Exception("Wrong template header!");
+                    cell.SetCellValue(mapping.Header);
                
             }
         }
@@ -1251,7 +1253,11 @@ namespace Xbim.COBieLiteUK
             }
 
             //if not suitable type was found, report it as a bug
-            throw new Exception("Unsupported type " + type.Name + " for value '" + cell.ToString() + "'");
+            //throw new Exception("Unsupported type " + type.Name + " for value '" + cell.ToString() + "'");
+
+            log.WriteLine("Unsupported type {0} in cell {1}{2}, sheet {3}",
+                        info.Name, CellReference.ConvertNumToColString(cell.ColumnIndex), cell.RowIndex + 1,
+                        cell.Sheet.SheetName);
         }
 
         private static Dictionary<string, List<MappingAttribute>> _mappingAttrsCache =

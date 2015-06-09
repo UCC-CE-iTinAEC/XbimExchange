@@ -38,7 +38,6 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
                 CreatedBy = new ContactKey{Email = tObject.CreatedBy.Email}
             });
 
-
             return tObject;
         }
     }

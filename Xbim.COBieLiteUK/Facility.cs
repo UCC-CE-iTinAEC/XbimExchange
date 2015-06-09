@@ -485,6 +485,13 @@ namespace Xbim.COBieLiteUK
                     break;
                 case ExcelTypeEnum.XLSX: //this is as it should be according to a standard
                     workbook = templateStream == null ? new XSSFWorkbook() : new XSSFWorkbook(templateStream);
+
+                    // This saves around 10 seconds by only refreshing formulas on the first page.
+                    if (templateStream != null)
+                    {
+                        workbook.GetSheetAt(0).ForceFormulaRecalculation = true;
+                    }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("type");
@@ -499,14 +506,14 @@ namespace Xbim.COBieLiteUK
             watch.Stop();
             Debug.WriteLine("Creating NPOI model: {0}ms", watch.ElapsedMilliseconds);
 
-            //refresh formulas
+            //refresh formulas -- this has quite a significant overhead!
             switch (type)
             {
                 case ExcelTypeEnum.XLS:
                     HSSFFormulaEvaluator.EvaluateAllFormulaCells(workbook);
                     break;
                 case ExcelTypeEnum.XLSX:
-                    XSSFFormulaEvaluator.EvaluateAllFormulaCells(workbook);
+                    if (templateStream == null) XSSFFormulaEvaluator.EvaluateAllFormulaCells(workbook);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException("type");
@@ -794,12 +801,14 @@ namespace Xbim.COBieLiteUK
 
             //g) Every Type should apply to at least one Component.
             if(AssetTypes != null)
-            foreach (var type in AssetTypes.Where(t => t.Assets == null || !t.Assets.Any()))
             {
-                logger.WriteLine("Type {0} doesn't contain any components.", type.Name);
-                if (!fixIfPossible) continue;
-                if (type.Assets == null) type.Assets = new List<Asset>();
-                type.Assets.Add(GetNewDefaultAsset());
+                foreach (var type in AssetTypes.Where(t => t.Assets == null || !t.Assets.Any()))
+                {
+                    logger.WriteLine("Type {0} doesn't contain any components.", type.Name);
+                    if (!fixIfPossible) continue;
+                    if (type.Assets == null) type.Assets = new List<Asset>();
+                    type.Assets.Add(GetNewDefaultAsset());
+                }
             }
 
             referenceWatch.Stop();
@@ -891,7 +900,8 @@ namespace Xbim.COBieLiteUK
                 CreatedOn = DateTime.Now,
                 CreatedBy = GetDefaultContactKey(),
                 Categories = GetDefaultCategories(),
-                Spaces = new List<SpaceKey>()
+                Spaces = new List<SpaceKey>(),
+                ExternalId = Guid.NewGuid().ToString()
             };
             Zones.Add(zone);
             return zone;
@@ -983,7 +993,8 @@ namespace Xbim.COBieLiteUK
                 CreatedOn = DateTime.Now,
                 CreatedBy = GetDefaultContactKey(),
                 Categories = GetDefaultCategories(),
-                Description = "Default description"
+                Description = "Default description",
+                ExternalId = Guid.NewGuid().ToString()
             };
             if(addToDefaultZone)
                 GetDefaultZone().Spaces.Add(new SpaceKey {Name = space.Name});
@@ -1032,7 +1043,8 @@ namespace Xbim.COBieLiteUK
                     Spaces = new List<Space>(),
                     CreatedOn = DateTime.Now,
                     CreatedBy = GetDefaultContactKey(),
-                    Categories = GetDefaultCategories()
+                    Categories = GetDefaultCategories(),
+                    ExternalId = Guid.NewGuid().ToString()
                 };
                 Floors.Add(defaultFloor);
             }

@@ -44,7 +44,17 @@ namespace Xbim.COBieLiteUK.Converters
 
                 if (jObject != null)
                 {
-                    jObject.Add("KeyType", key.ForType.Name);
+                    if (jObject["KeyType"] != null)
+                    {
+                        // Overwrite the key?
+                        jObject.Remove("KeyType");
+                    }
+
+                    if (key.Name != null)
+                    {
+                        jObject.Add("KeyType", key.ForType.Name);
+                    }
+
                     jObject.WriteTo(writer);
                 }
                 else

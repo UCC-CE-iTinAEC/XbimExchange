@@ -18,7 +18,8 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         private void MakeReport()
         {
             SetBasicGrid();
-            
+            if (_documentsToReport == null) return;
+
             foreach (var runningParent in _documentsToReport)
             {
                 var r = GetRow(runningParent);

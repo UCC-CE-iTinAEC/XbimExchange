@@ -73,7 +73,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
                 {
 
                     target.Department = postal.InternalLocation;
-                    target.Street = postal.AddressLines.ToString();
+                    target.Street = postal.AddressLines != null ? postal.AddressLines.ToString() : null;
                     target.PostalBox = postal.PostalBox;
                     target.Town = postal.Town;
                     target.StateRegion = postal.Region;

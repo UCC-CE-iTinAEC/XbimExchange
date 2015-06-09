@@ -65,8 +65,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
         #endregion
 
         #region Static members and functions
-        static readonly IDictionary<string, NamedProperty> CobieToIfcPropertyMap = new Dictionary<string, NamedProperty>();
-
+        static IDictionary<string, NamedProperty> CobieToIfcPropertyMap = new Dictionary<string, NamedProperty>();
 
         static CoBieLiteUkToIfcExchanger()
         {
@@ -168,6 +167,39 @@ namespace XbimExchanger.COBieLiteUkToIfc
         #endregion
 
         #region Constructors
+
+        /// <summary>
+        /// Constructs the exchanger - allowing passing in of COBie settings rather than looking for a file relative
+        /// to an Executable
+        /// </summary>
+        /// <param name="facility"></param>
+        /// <param name="repository"></param>
+        /// <param name="configFilePath"></param>
+        public CoBieLiteUkToIfcExchanger(Facility facility, XbimModel repository, string configFilePath)
+            : this(facility, repository)
+        {
+            CobieToIfcPropertyMap = new Dictionary<string, NamedProperty>();
+
+            System.Xml.XmlDocument settings = new System.Xml.XmlDocument();
+            settings.Load(configFilePath);
+
+            var settingsElement = settings.DocumentElement.SelectSingleNode("COBiePropertyMaps");
+            foreach (var element in settingsElement.ChildNodes)
+            {
+                System.Xml.XmlElement el = element as System.Xml.XmlElement;
+
+                if (el == null) continue;
+
+                var values = el.GetAttribute("value").Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                var selected = values.FirstOrDefault();
+                if (selected != null)
+                {
+                    var names = selected.Split(new[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (names.Length == 2 && !CobieToIfcPropertyMap.ContainsKey(el.GetAttribute("key")))
+                        CobieToIfcPropertyMap.Add(el.GetAttribute("key"), new NamedProperty(names[0], names[1]));
+                }
+            }
+        }
 
         /// <summary>
         /// Constructs the exchanger

@@ -122,6 +122,7 @@ namespace Xbim.CobieLiteUK.Validation
                 // to be added project level validation here.
                 var pv = new ProjectValidator(requirement.Project);
                 retFacility.Project = pv.Validate(submitted.Project);
+                retFacility.Name = retFacility.Project.Name;
 
                 if (pv.HasFailures)
                 {

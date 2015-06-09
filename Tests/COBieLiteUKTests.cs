@@ -10,7 +10,6 @@ using Xbim.CobieLiteUK.Validation;
 using Xbim.IO;
 using XbimExchanger.IfcToCOBieLiteUK;
 using Attribute = Xbim.COBieLiteUK.Attribute;
-using System = Xbim.COBieLiteUK.System;
 
 
 namespace Tests
@@ -747,11 +746,49 @@ namespace Tests
         [DeploymentItem("TestFiles\\OBN1-COBie-UK-2014.xlsx")]
         [TestMethod]
         [DeploymentItem("ValidationFiles\\Lakeside_Restaurant.ifc")]
+        [DeploymentItem("RIBAETestFiles\\001-Kenton_High_School_Model.ifc")]
+        [DeploymentItem("RIBAETestFiles\\001 Hello Wall.ifc")]
+        [DeploymentItem("RIBAETestFiles\\Duplex_A_20110907_optimized.ifc")]
+        [DeploymentItem("RIBAETestFiles\\NBS_LakesideRestaurant_small_optimized.ifc")]
+        [DeploymentItem("RIBAETestFiles\\Office_A_20110811_optimized.ifc")]
         public void IfcToCoBieLiteUkTest()
         {
+            string[] testFiles = new string[] { "Lakeside_Restaurant.ifc", "001-Kenton_High_School_Model.ifc", "001 Hello Wall.ifc", "Duplex_A_20110907_optimized.ifc", "NBS_LakesideRestaurant_small_optimized.ifc", "Office_A_20110811_optimized.ifc" };
+
+            foreach (var ifcTestFile in testFiles)
+            {
+                using (var m = new XbimModel())
+                {
+                    var xbimTestFile = Path.ChangeExtension(ifcTestFile, "xbim");
+                    var jsonFile = Path.ChangeExtension(ifcTestFile, "json");
+                    m.CreateFrom(ifcTestFile, xbimTestFile, null, true, true);
+                    var facilities = new List<Facility>();
+                    var ifcToCoBieLiteUkExchanger = new IfcToCOBieLiteUkExchanger(m, facilities);
+                    facilities = ifcToCoBieLiteUkExchanger.Convert();
+
+                    foreach (var facilityType in facilities)
+                    {
+                        var log = new StringWriter();
+                        facilityType.ValidateUK2012(log, true);
+
+                        string msg;
+                        facilityType.WriteJson(jsonFile, true);
+                        facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012", true);
+
+
+                        break;
+                    }
+                }
+            }
+        }
+        [TestMethod]
+        [DeploymentItem("RIBAETestFiles\\001 BTK Sample.ifc")]
+        public void IfcToCoBieLiteUkTestSingleFile()
+        {
+            string ifcTestFile = "001 BTK Sample.ifc";
+
             using (var m = new XbimModel())
             {
-                const string ifcTestFile = @"Lakeside_Restaurant.ifc";
                 var xbimTestFile = Path.ChangeExtension(ifcTestFile, "xbim");
                 var jsonFile = Path.ChangeExtension(ifcTestFile, "json");
                 m.CreateFrom(ifcTestFile, xbimTestFile, null, true, true);
@@ -766,7 +803,7 @@ namespace Tests
 
                     string msg;
                     facilityType.WriteJson(jsonFile, true);
-                    facilityType.WriteCobie("..\\..\\Lakeside_Restaurant.xlsx", out msg, "UK2012", true);
+                    facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012", true);
 
 
                     break;
