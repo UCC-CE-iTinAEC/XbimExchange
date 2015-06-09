@@ -54,6 +54,7 @@
     <Compile Include="Attribute.cs" />
     <Compile Include="Classification.cs" />
     <Compile Include="ClassificationReference.cs" />
+    <Compile Include="Comment.cs" />
     <Compile Include="Contact.cs" />
     <Compile Include="CurrencyUnits.cs" />
     <Compile Include="Documentation.cs" />

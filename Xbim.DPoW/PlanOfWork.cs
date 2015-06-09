@@ -13,6 +13,24 @@ namespace Xbim.DPoW
     public class PlanOfWork :DPoWAttributableObject
     {
         /// <summary>
+        /// Dpow file version
+        /// </summary>
+        /// <remarks>
+        /// 1.0.0 - April 2015; development version of dpow file
+        /// 1.0.1 - June 2015; public beta version of the dpow file with LOD/LOI version numbers in it
+        /// 1.0.2 - July 2015; launch version of the dpow file with comments
+        /// </remarks>
+        private const string DPOW_FILE_VERSION = "1.0.2";
+        
+        public static string DpowFileVersion
+        {
+            get
+            {
+                return DPOW_FILE_VERSION;
+            }
+        }
+
+        /// <summary>
         /// Classification systems defined in this plan of work
         /// </summary>
         public List<Classification> ClassificationSystems { get; set; }
