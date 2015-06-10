@@ -57,15 +57,9 @@ namespace Xbim.DPoW
             Id=Guid.NewGuid();
         }
 
-        public List<Comment> Comments
-        {
-            get
-            {
-                throw new System.NotImplementedException();
-            }
-            set
-            {
-            }
-        }
+        /// <summary>
+        /// Comments against this task
+        /// </summary>
+        public List<Comment> Comments { get; set; }
     }
 }

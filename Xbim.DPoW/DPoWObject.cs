@@ -41,17 +41,11 @@ namespace Xbim.DPoW
         /// Jobs related to this object. This is used to assign responsibility to people and/or roles for specific actions.
         /// </summary>
         public List<Job> Jobs { get; set; }
+        /// <summary>
+        /// Comments against this deliverable
+        /// </summary>
+        public List<Comment> Comments { get; set; }
 
-        public List<Comment> Comments
-        {
-            get
-            {
-                throw new System.NotImplementedException();
-            }
-            set
-            {
-            }
-        }
         /// <summary>
         /// Constructor initializes ID to new unique value
         /// </summary>
