@@ -47,10 +47,14 @@ namespace Xbim.CobieLiteUK.Validation.Extensions
 
         public static bool IsChildOf(this Category testedCategory, Category requiredCategory)
         {
-            return
-                //testedCategory.Classification == requiredCategory.Classification 
-                //&& 
-                testedCategory.Code.StartsWith(requiredCategory.Code, StringComparison.InvariantCultureIgnoreCase);
+            if (requiredCategory.Code != null && testedCategory.Code != null)
+            {
+                return testedCategory.Code.StartsWith(requiredCategory.Code, StringComparison.InvariantCultureIgnoreCase);
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public static bool ExactlyMatches(this Category testedCategory, Category requiredCategory)

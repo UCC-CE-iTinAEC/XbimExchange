@@ -88,10 +88,10 @@ namespace Tests
         [TestMethod]
         public void ValidateXlsLakeside()
         {
-            const string xlsx = @"LakesideWithDocuments.xls";
+            const string xlsx = @"WorkedExample - 001 BTK Sample (2).xlsx";
             string msg;
             var cobie = Facility.ReadCobie(xlsx, out msg);
-            var req = Facility.ReadJson(@"Lakeside_Restaurant-stage6-COBie.json");
+            var req = Facility.ReadJson(@"004-House_Refurbishment-stage1-COBie.json");
             var validator = new FacilityValidator();
             var result = validator.Validate(req, cobie);
             result.WriteJson(@"..\..\XlsLakesideWithDocumentsValidationStage6.json", true);
