@@ -22,7 +22,7 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
                 target.Categories = new List<Category>();
             target.Categories.Add(new Category { Code = code, Classification = "DPoW"});
             target.GivenName = source.Name;
-
+            
             //email has to be defined because it is a key for ContactKey references
             var email = String.Format("{0}@role.com", source.Name ?? "noname").ToLower();
             email = (new Regex("(\\s|\\[|\\])", RegexOptions.IgnoreCase)).Replace(email, "_").Trim('_').Trim();
@@ -31,6 +31,15 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
             if (target.Attributes == null) target.Attributes = new List<Attribute>();
             target.Attributes.Add("Name", "RoleName", source.Name, "RolePropertySet");
             target.Attributes.Add("Description", "RoleDescription", source.Description, "RolePropertySet");
+
+            // If we have an organization associated with this role, then output that
+            var attributes = source.Attributes;
+            if (attributes != null && attributes.Any())
+            {
+                // If we have a company associated with the role then set that
+                var company = attributes.FirstOrDefault(a => a.Name == "ResponsibleContact");
+                if (company != null) target.Company = company.Value;
+            }
             
             return target;
         }

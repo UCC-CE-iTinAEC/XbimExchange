@@ -92,6 +92,9 @@
     <None Include="RIBAETestFiles\004-House_Refurbishment-stage6-COBie.xlsx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="RIBAETestFiles\006-K_West_Hotel_&amp;_Spa.dpow">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="RIBAETestFiles\broken_reqs.requirements.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

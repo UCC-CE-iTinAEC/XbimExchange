@@ -18,13 +18,14 @@ namespace Tests
     [TestClass]
     [DeploymentItem(@"COBieAttributes.config\")]
     [DeploymentItem(@"TestFiles\")]
+    [DeploymentItem(@"RIBAETestFiles\")]
     public class DPoWToCOBieLiteUKTests
     {
         [TestMethod]
         public void ConvertDPoWToCOBieLite()
         {
             //var pow = PlanOfWork.OpenJson("NewtownHighSchool.new.dpow");
-            var pow = PlanOfWork.OpenJson("013-Lakeside_Restaurant.dpow");
+            var pow = PlanOfWork.OpenJson("006-K_West_Hotel_&_Spa.dpow");
             const string dir = "..\\..\\COBieLiteUK";
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
