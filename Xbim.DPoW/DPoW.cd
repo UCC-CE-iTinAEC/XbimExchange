@@ -113,7 +113,7 @@
   <Class Name="Xbim.DPoW.Documentation">
     <Position X="10.75" Y="14" Width="2.25" />
     <TypeIdentifier>
-      <HashCode>AAACAAAAAAGhAAAAAEAAAAQAACAAAAAAAAAAAAAAIAA=</HashCode>
+      <HashCode>EAACQAAAAAGhAAAAAEAgAAQAACAAAAAAAAAAAAAAIAA=</HashCode>
       <FileName>Documentation.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>

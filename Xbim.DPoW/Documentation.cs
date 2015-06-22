@@ -61,5 +61,20 @@ namespace Xbim.DPoW
         /// Comments against this task
         /// </summary>
         public List<Comment> Comments { get; set; }
+
+        /// <summary>
+        /// Document code
+        /// </summary>
+        public string Code { get; set; }
+
+        /// <summary>
+        /// Employer's information requirement
+        /// </summary>
+        public string EIR { get; set; }
+
+        /// <summary>
+        /// Plain language question
+        /// </summary>
+        public string PLQ { get; set; }
     }
 }

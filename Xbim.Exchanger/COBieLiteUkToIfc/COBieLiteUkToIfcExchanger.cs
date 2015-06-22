@@ -42,11 +42,11 @@ namespace XbimExchanger.COBieLiteUkToIfc
         public struct NamedProperty
         {
             /// <summary>
-            /// The name of the Property Set
+            /// The name of the Code Set
             /// </summary>
             public string PropertySetName;
             /// <summary>
-            /// The name of the Property Name
+            /// The name of the Code Name
             /// </summary>
             public string PropertyName;
 
@@ -540,7 +540,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
             }
             catch (Exception e)
             {
-                throw new Exception("Failed to convert a COBie Value to and Ifc Single Value Property. " + e.Message);
+                throw new Exception("Failed to convert a COBie Value to and Ifc Single Value Code. " + e.Message);
             }
         }
 
@@ -613,7 +613,7 @@ namespace XbimExchanger.COBieLiteUkToIfc
         }
 
         /// <summary>
-        /// Converts an attribute in to an Ifc Property, still needs support for units adding
+        /// Converts an attribute in to an Ifc Code, still needs support for units adding
         /// </summary>
         /// <param name="attributeType"></param>
         /// <returns></returns>

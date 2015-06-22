@@ -46,12 +46,12 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             if (!pSetDef.Name.HasValue || string.IsNullOrWhiteSpace(pSetDef.Name))
             {
-                CoBieLiteUkHelper.Logger.WarnFormat("Property Set Definition: #{0}, has no defined name. It has been ignored", pSetDef.EntityLabel);
+                CoBieLiteUkHelper.Logger.WarnFormat("Code Set Definition: #{0}, has no defined name. It has been ignored", pSetDef.EntityLabel);
                 return;
             }
             if ( _propertySets.ContainsKey(pSetDef.Name))
             {
-                CoBieLiteUkHelper.Logger.WarnFormat("Property Set Definition: #{0}={1}, is duplicated in Entity #{2}={3}. Duplicate ignored", pSetDef.EntityLabel, pSetDef.Name, _ifcObject.EntityLabel, _ifcObject.GetType().Name);
+                CoBieLiteUkHelper.Logger.WarnFormat("Code Set Definition: #{0}={1}, is duplicated in Entity #{2}={3}. Duplicate ignored", pSetDef.EntityLabel, pSetDef.Name, _ifcObject.EntityLabel, _ifcObject.GetType().Name);
                 return;
             }
             _propertySets.Add(pSetDef.Name,pSetDef);
@@ -64,7 +64,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
                     var uniquePropertyName = pSetDef.Name + "." + prop.Name;
                     if (_properties.ContainsKey(uniquePropertyName))
                     {
-                        CoBieLiteUkHelper.Logger.WarnFormat("Property: #{0}={1}.{2}, is duplicated in Entity #{3}={4}. Duplicate ignored", prop.EntityLabel, pSetDef.Name, prop.Name, _ifcObject.EntityLabel, _ifcObject.GetType().Name);
+                        CoBieLiteUkHelper.Logger.WarnFormat("Code: #{0}={1}.{2}, is duplicated in Entity #{3}={4}. Duplicate ignored", prop.EntityLabel, pSetDef.Name, prop.Name, _ifcObject.EntityLabel, _ifcObject.GetType().Name);
                         continue;
                     }
                     _properties[uniquePropertyName] = prop;
