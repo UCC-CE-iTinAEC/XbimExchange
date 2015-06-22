@@ -15,7 +15,7 @@ namespace XbimExchanger.DPoWToCOBieLiteUK
             base.Mapping(sObject, tObject);
 
             tObject.ExternalId = sObject.Id.ToString();
-            tObject.Name = (sObject.Code == null && sObject.EIR == null) ? sObject.Name : string.Format("{0} {1}", sObject.Code, sObject.EIR);
+            tObject.Name = (sObject.Code == null || sObject.EIR == null) ? sObject.Name : string.Format("{0} {1}", sObject.Code, sObject.EIR);
             tObject.Description = sObject.Description;
             tObject.Reference = sObject.URI;
 
