@@ -11,30 +11,30 @@ namespace XbimExchanger.IfcToCOBieLiteUK
     /// </summary>
     public class XbimIfcProxyTypeObject
     {
-        private readonly IfcTypeObject _ifcTypeObject;
+        private readonly IfcRoot _ifcObject;
         private readonly CoBieLiteUkHelper _helper;
         private readonly string _name;
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="helper"></param>
-        /// <param name="name"></param>
-        public XbimIfcProxyTypeObject(CoBieLiteUkHelper helper, string name)
-        {
-            _name = name;
-            _helper = helper;
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="helper"></param>
+        ///// <param name="name"></param>
+        //public XbimIfcProxyTypeObject(CoBieLiteUkHelper helper, string name)
+        //{
+        //    _name = name;
+        //    _helper = helper;
+        //}
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="helper"></param>
-        /// <param name="typeObject"></param>
+        /// <param name="rootObject"></param>
         /// <param name="typeName"></param>
-        public XbimIfcProxyTypeObject(CoBieLiteUkHelper helper, IfcTypeObject typeObject, string typeName)
+        public XbimIfcProxyTypeObject(CoBieLiteUkHelper helper, IfcRoot rootObject, string typeName)
         {
-            _ifcTypeObject = typeObject;
+            _ifcObject = rootObject;
             _helper = helper;
             _name = typeName;
         }
@@ -45,8 +45,8 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             get
             {
-                if(_ifcTypeObject!=null) 
-                    return _helper.ExternalEntityName(_ifcTypeObject);
+                if(_ifcObject!=null) 
+                    return _helper.ExternalEntityName(_ifcObject);
                 return "IfcTypeObject";
             }
         }
@@ -57,8 +57,8 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             get
             {
-                if(_ifcTypeObject!=null) 
-                    return _helper.ExternalEntityIdentity(_ifcTypeObject);
+                if(_ifcObject!=null) 
+                    return _helper.ExternalEntityIdentity(_ifcObject);
                 return null;
             }
         }
@@ -70,8 +70,8 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             get
             {
-                if(_ifcTypeObject!=null) 
-                    return _helper.ExternalSystemName(_ifcTypeObject);
+                if(_ifcObject!=null) 
+                    return _helper.ExternalSystemName(_ifcObject);
                 return "xBIM";
             }
         }
@@ -93,8 +93,8 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             get
             {
-                if(_ifcTypeObject!=null) 
-                    return  _helper.GetCategories(_ifcTypeObject);
+                if(_ifcObject!=null) 
+                    return  _helper.GetCategories(_ifcObject);
                 return CoBieLiteUkHelper.UnknownCategory;
             }
         }
@@ -105,17 +105,17 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             get
             {
-                if (_ifcTypeObject != null)
+                if (_ifcObject != null)
                 {
-                    var accCategoryString = _helper.GetCoBieProperty("AssetTypeAccountingCategory", _ifcTypeObject);
+                    var accCategoryString = _helper.GetCoBieProperty("AssetTypeAccountingCategory", _ifcObject);
                     AssetPortability accCategoryEnum;
                     if (Enum.TryParse(accCategoryString, true, out accCategoryEnum))
                         return accCategoryEnum;
                     CoBieLiteUkHelper.Logger.WarnFormat(
                         "AssetTypeAccountingCategory: An illegal value of [{0}] has been passed for the category of #{1}={2}.",
-                        accCategoryString, _ifcTypeObject.EntityLabel, _ifcTypeObject.GetType().Name);
+                        accCategoryString, _ifcObject.EntityLabel, _ifcObject.GetType().Name);
                     IfcAsset ifcAsset;
-                    if (_helper.AssetAsignments.TryGetValue(_ifcTypeObject, out ifcAsset))
+                    if (_helper.AssetAsignments.TryGetValue(_ifcObject, out ifcAsset))
                     {
                         string portability =
                             _helper.GetCoBieAttribute<StringAttributeValue>("AssetTypeAccountingCategory", ifcAsset).Value;
@@ -134,15 +134,15 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             get
             {
-                if (_ifcTypeObject != null)
-                    return _ifcTypeObject.Description;
+                if (_ifcObject != null)
+                    return _ifcObject.Description;
                 return null;
             }
         }
         /// <summary>
         /// returns the type object null if this is a generated type
         /// </summary>
-        public IfcTypeObject IfcTypeObject { get { return _ifcTypeObject; }}
+        public IfcRoot IfcObject { get { return _ifcObject; }}
 
         /// <summary>
         /// Returns the entity label , -1 if this is a generated type </summary>
@@ -150,8 +150,8 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             get
             {
-                if (_ifcTypeObject != null)
-                    return _ifcTypeObject.EntityLabel; 
+                if (_ifcObject != null)
+                    return _ifcObject.EntityLabel; 
                 return -1;
             }
         }
@@ -163,21 +163,21 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         {
             get
             {
-                if (_ifcTypeObject != null)
-                    return _ifcTypeObject.GetType().Name;
+                if (_ifcObject != null)
+                    return _ifcObject.GetType().Name;
                 return null;
             }
         }
 
         internal ContactKey GetCreatedBy()
         {       
-           return _helper.GetCreatedBy(_ifcTypeObject);
+           return _helper.GetCreatedBy(_ifcObject);
         }
 
         internal DateTime? GetCreatedOn()
         {
-            if (_ifcTypeObject != null)
-                return _helper.GetCreatedOn(_ifcTypeObject);
+            if (_ifcObject != null)
+                return _helper.GetCreatedOn(_ifcObject);
             return DateTime.Now;
         }
     }

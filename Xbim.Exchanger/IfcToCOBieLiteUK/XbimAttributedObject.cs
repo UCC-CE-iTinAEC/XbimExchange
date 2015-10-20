@@ -20,7 +20,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
     /// </summary>
     public class XbimAttributedObject
     {
-        private readonly IfcObjectDefinition _ifcObject;
+        private readonly IfcRoot _ifcObject;
         private Dictionary<string, IfcProperty> _properties = new Dictionary<string, IfcProperty>();
         private Dictionary<string, IfcPhysicalQuantity> _quantities = new Dictionary<string, IfcPhysicalQuantity>();
         private Dictionary<string, IfcPropertySetDefinition> _propertySets=new Dictionary<string, IfcPropertySetDefinition>();
@@ -29,13 +29,13 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         /// 
         /// </summary>
         /// <param name="obj"></param>
-        public XbimAttributedObject(IfcObjectDefinition obj)
+        public XbimAttributedObject(IfcRoot obj)
         {
             _ifcObject = obj;
         }
 
         /// <summary />
-        public IfcObjectDefinition IfcObject
+        public IfcRoot IfcObject
         {
             get { return _ifcObject; }
         }

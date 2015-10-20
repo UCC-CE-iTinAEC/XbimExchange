@@ -90,11 +90,35 @@ namespace Tests
         {
             const string xlsx = @"WorkedExample - 001 BTK Sample (2).xlsx";
             string msg;
-            var cobie = Facility.ReadCobie(xlsx, out msg);
+            var cobie = Facility.ReadCobie(@"001 Small Primary School.CobieLite.json", out msg);
             var req = Facility.ReadJson(@"004-House_Refurbishment-stage1-COBie.json");
             var validator = new FacilityValidator();
             var result = validator.Validate(req, cobie);
             result.WriteJson(@"..\..\XlsLakesideWithDocumentsValidationStage6.json", true);
+        }
+
+        [TestMethod]
+        public void ValidateSchool()
+        {
+            var cobie = Facility.ReadJson(@"001 Small Primary School.CobieLite.json");
+            var req = Facility.ReadJson(@"021-Newtown_Primary_School-stage6-COBie.json");
+            var validator = new FacilityValidator();
+            var result = validator.Validate(req, cobie);
+            result.WriteJson(@"..\..\XlsLakesideWithDocumentsValidationStage6.json", true);
+        }
+
+        [TestMethod]
+        public void ValidateVectorWorks()
+        {
+            var cobie = Facility.ReadJson(@"SimpleBuilding_VW2016.json");
+            var req = Facility.ReadJson(@"004-House_Refurbishment-stage6-COBie.json");
+            var validator = new FacilityValidator();
+            var result = validator.Validate(req, cobie);
+            result.WriteJson(@"..\..\XlsLakesideWithDocumentsValidationStage6.json", true);
+
+            const string repName = @"..\..\ValidationReport.xlsx";
+            var xRep = new ExcelValidationReport();
+            var ret = xRep.Create(result, repName);
         }
 
         [TestMethod]

@@ -109,7 +109,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         private Dictionary<IfcZone, HashSet<IfcSpace>> _zoneSpaces;
         private Dictionary<IfcSpace, HashSet<IfcZone>> _spaceZones;
 
-        private Dictionary<IfcObjectDefinition, XbimAttributedObject> _attributedObjects;
+        private Dictionary<IfcRoot, XbimAttributedObject> _attributedObjects;
 
         private Dictionary<string, string[]> _cobieFieldMap;
 
@@ -124,7 +124,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
 /*
         private Lookup<string, IfcElement> _elementTypeToElementObjectMap;
 */
-        private Dictionary<IfcTypeObject, IfcAsset> _assetAsignments;
+        private Dictionary<IfcRoot, IfcAsset> _assetAsignments;
         private Dictionary<IfcSystem, ObjectDefinitionSet> _systemAssignment;
         private Dictionary<IfcObjectDefinition, List<IfcSystem>> _systemLookup;
         private readonly HashSet<string> _cobieProperties = new HashSet<string>();
@@ -270,6 +270,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
             foreach (var unCategorizedAssetsWithType in unCategorizedAssetsWithTypes)
             {
                 XbimIfcProxyTypeObject proxyType;
+
                 if (proxyTypesByKey.ContainsKey(unCategorizedAssetsWithType.Key))
                 {
                     proxyType = proxyTypesByKey[unCategorizedAssetsWithType.Key];
@@ -278,10 +279,11 @@ namespace XbimExchanger.IfcToCOBieLiteUK
                 }
                 else
                 {
-                    proxyType = new XbimIfcProxyTypeObject(this,unCategorizedAssetsWithType.Key);
+                    proxyType = new XbimIfcProxyTypeObject(this, unCategorizedAssetsWithType.Value.FirstOrDefault(), unCategorizedAssetsWithType.Key);
                     proxyTypesByKey.Add(unCategorizedAssetsWithType.Key, proxyType);
                     _definingTypeObjectMap.Add(proxyType, unCategorizedAssetsWithType.Value);
                 }
+
                 foreach (var ifcObject in unCategorizedAssetsWithType.Value)
                 {
                     _objectToTypeObjectMap.Add(ifcObject, proxyType);
@@ -295,7 +297,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
             var assetRels = _model.Instances.OfType<IfcRelAssignsToGroup>()
                 .Where(r => r.RelatingGroup is IfcAsset);
 
-            _assetAsignments = new Dictionary<IfcTypeObject, IfcAsset>();
+            _assetAsignments = new Dictionary<IfcRoot, IfcAsset>();
             foreach (var assetRel in assetRels)
             {
                 foreach (var assetType in assetRel.RelatedObjects)
@@ -375,18 +377,18 @@ namespace XbimExchanger.IfcToCOBieLiteUK
                {
                    if (category.Classification != null &&
                        category.Classification.ToUpperInvariant().Contains("UNICLASS2015"))
-                       return new XbimIfcProxyTypeObject(this, string.Format("{0}Type {1}", element.GetType().Name.Substring(3), category.Code));
+                       return new XbimIfcProxyTypeObject(this, element, string.Format("{0}Type {1}", element.GetType().Name.Substring(3), category.Code));
                }
                //otherwise take the first
-               return new XbimIfcProxyTypeObject(this,string.Format("{0}Type {1}", element.GetType().Name.Substring(3), categories.First().Code));
+               return new XbimIfcProxyTypeObject(this, element, string.Format("{0}Type {1}", element.GetType().Name.Substring(3), categories.First().Code));
            }
            //its unclassified
            if (!string.IsNullOrWhiteSpace(name))
            {
                
-               return new XbimIfcProxyTypeObject(this, string.Format("{0}Type {1}",element.GetType().Name.Substring(3), name));
+               return new XbimIfcProxyTypeObject(this, element, string.Format("{0}Type {1}",element.GetType().Name.Substring(3), name));
            }
-           return new XbimIfcProxyTypeObject(this, AllocateTypeName(element.GetType().Name.Substring(3)+"Type"));
+           return new XbimIfcProxyTypeObject(this, element, AllocateTypeName(element.GetType().Name.Substring(3)+"Type"));
        }
 
         
@@ -472,7 +474,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
 
         private void GetPropertySets()
         {
-            _attributedObjects = new Dictionary<IfcObjectDefinition, XbimAttributedObject>();
+            _attributedObjects = new Dictionary<IfcRoot, XbimAttributedObject>();
             var relProps = _model.Instances.OfType<IfcRelDefinesByProperties>().ToList();
             foreach (var relProp in relProps)
             {
@@ -488,17 +490,19 @@ namespace XbimExchanger.IfcToCOBieLiteUK
                 }
             }
             //process type objects ignoring pure proxies
-            foreach (var typeObject in _definingTypeObjectMap.Keys.Where(t=>t.IfcTypeObject!=null))
+            foreach (var typeObject in _definingTypeObjectMap.Keys.Where(t=>t.IfcObject!=null))
             {
                 XbimAttributedObject attributedObject;
-                if (!_attributedObjects.TryGetValue(typeObject.IfcTypeObject, out attributedObject))
-                    {
-                        attributedObject = new XbimAttributedObject(typeObject.IfcTypeObject);
-                        _attributedObjects.Add(typeObject.IfcTypeObject, attributedObject);
-                    }
-                if (typeObject.IfcTypeObject.HasPropertySets != null)
+
+                if (!_attributedObjects.TryGetValue(typeObject.IfcObject, out attributedObject))
                 {
-                    foreach (var pset in typeObject.IfcTypeObject.HasPropertySets)
+                    attributedObject = new XbimAttributedObject(typeObject.IfcObject);
+                    _attributedObjects.Add(typeObject.IfcObject, attributedObject);
+                }
+
+                if (typeObject.IfcObject.GetType() == typeof(IfcTypeObject) && (typeObject.IfcObject as IfcTypeObject).HasPropertySets != null)
+                {
+                    foreach (var pset in (typeObject.IfcObject as IfcTypeObject).HasPropertySets)
                     {
                         attributedObject.AddPropertySetDefinition(pset);
                     }
@@ -644,7 +648,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         /// <summary>
         /// 
         /// </summary>
-        public Dictionary<IfcTypeObject, IfcAsset> AssetAsignments
+        public Dictionary<IfcRoot, IfcAsset> AssetAsignments
         {
             get { return _assetAsignments; }
         }
@@ -890,16 +894,16 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         /// 
         /// </summary>
         /// <param name="valueName"></param>
-        /// <param name="ifcObjectDefinition"></param>
+        /// <param name="ifcRoot"></param>
         /// <typeparam name="TCoBieValueBaseType"></typeparam>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public TCoBieValueBaseType GetCoBieAttribute<TCoBieValueBaseType>(string valueName, IfcObjectDefinition ifcObjectDefinition)
+        public TCoBieValueBaseType GetCoBieAttribute<TCoBieValueBaseType>(string valueName, IfcRoot ifcRoot)
             where TCoBieValueBaseType : AttributeValue, new()
         {
             XbimAttributedObject attributedObject;
             var result = new TCoBieValueBaseType();
-            if (_attributedObjects.TryGetValue(ifcObjectDefinition, out attributedObject))
+            if (_attributedObjects.TryGetValue(ifcRoot, out attributedObject))
             {
                 string[] propertyNames;
                 if (_cobieFieldMap.TryGetValue(valueName, out propertyNames))
@@ -953,23 +957,23 @@ namespace XbimExchanger.IfcToCOBieLiteUK
 
         
 
-        private IfcTypeObject GetDefiningTypeObject(IfcObject ifcObject)
+        private IfcRoot GetDefiningTypeObject(IfcObject ifcObject)
         {
             XbimIfcProxyTypeObject definingType;
             _objectToTypeObjectMap.TryGetValue(ifcObject, out definingType);
-            return definingType != null ? definingType.IfcTypeObject : null;
+            return definingType != null ? definingType.IfcObject : null;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="ifcObjectDefinition"></param>
+        /// <param name="ifcRoot"></param>
         /// <returns></returns>
-        public List<Attribute> GetAttributes(IfcObjectDefinition ifcObjectDefinition)
+        public List<Attribute> GetAttributes(IfcRoot ifcRoot)
         {
             var uniqueAttributes = new Dictionary<string, Attribute>();
             XbimAttributedObject attributedObject;
-            if (_attributedObjects.TryGetValue(ifcObjectDefinition, out attributedObject))
+            if (_attributedObjects.TryGetValue(ifcRoot, out attributedObject))
             {
                 var properties = attributedObject.Properties;
                 var keyValuePairs = properties.ToArray();
@@ -1138,13 +1142,13 @@ namespace XbimExchanger.IfcToCOBieLiteUK
         /// 
         /// </summary>
         /// <param name="valueName"></param>
-        /// <param name="ifcObjectDefinition"></param>
+        /// <param name="ifcRoot"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public string GetCoBieProperty(string valueName, IfcObjectDefinition ifcObjectDefinition)
+        public string GetCoBieProperty(string valueName, IfcRoot ifcRoot)
         {
             XbimAttributedObject attributedObject;
-            if (_attributedObjects.TryGetValue(ifcObjectDefinition, out attributedObject))
+            if (_attributedObjects.TryGetValue(ifcRoot, out attributedObject))
             {
                 string[] propertyNames;
                 if (_cobieFieldMap.TryGetValue(valueName, out propertyNames))

@@ -74,6 +74,15 @@
     <None Include="RIBAETestFiles\001 Hello Wall.ifc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="RIBAETestFiles\001 Small Primary School.CobieLite.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="RIBAETestFiles\001 Small Primary School.ifc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="RIBAETestFiles\001 Small Primary School_DPoW.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="RIBAETestFiles\001-Kenton_High_School_Model.ifc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -95,6 +104,9 @@
     <None Include="RIBAETestFiles\006-K_West_Hotel_&amp;_Spa.dpow">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="RIBAETestFiles\021-Newtown_Primary_School-stage6-COBie.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="RIBAETestFiles\broken_reqs.requirements.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -105,6 +117,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="RIBAETestFiles\Office_A_20110811_optimized.ifc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="RIBAETestFiles\SimpleBuilding_VW2016.ifc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="RIBAETestFiles\SimpleBuilding_VW2016.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="RIBAETestFiles\Submission_improved.xlsx">

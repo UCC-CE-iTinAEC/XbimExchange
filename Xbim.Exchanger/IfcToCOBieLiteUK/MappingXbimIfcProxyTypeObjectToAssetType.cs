@@ -28,7 +28,7 @@ namespace XbimExchanger.IfcToCOBieLiteUK
             target.CreatedBy = proxyIfcTypeObject.GetCreatedBy();
             target.CreatedOn = proxyIfcTypeObject.GetCreatedOn();
             target.Description = proxyIfcTypeObject.Description;
-            var ifcTypeObject = proxyIfcTypeObject.IfcTypeObject;
+            var ifcTypeObject = proxyIfcTypeObject.IfcObject;
             List<IfcElement> allAssetsofThisType;
             helper.DefiningTypeObjectMap.TryGetValue(proxyIfcTypeObject, out allAssetsofThisType);
 

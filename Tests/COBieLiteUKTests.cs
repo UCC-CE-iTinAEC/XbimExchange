@@ -811,6 +811,36 @@ namespace Tests
             }
         }
 
+        [TestMethod]
+        [DeploymentItem("RIBAETestFiles\\SimpleBuilding_VW2016.ifc")]
+        public void IfcToCoBieLiteUkTestVectorworks()
+        {
+            string ifcTestFile = "SimpleBuilding_VW2016.ifc";
+
+            using (var m = new XbimModel())
+            {
+                var xbimTestFile = Path.ChangeExtension(ifcTestFile, "xbim");
+                var jsonFile = Path.ChangeExtension(ifcTestFile, "json");
+                m.CreateFrom(ifcTestFile, xbimTestFile, null, true, true);
+                var facilities = new List<Facility>();
+                var ifcToCoBieLiteUkExchanger = new IfcToCOBieLiteUkExchanger(m, facilities);
+                facilities = ifcToCoBieLiteUkExchanger.Convert();
+
+                foreach (var facilityType in facilities)
+                {
+                    var log = new StringWriter();
+                    facilityType.ValidateUK2012(log, true);
+
+                    string msg;
+                    facilityType.WriteJson("..\\..\\" + jsonFile, true);
+                    facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012", true);
+
+
+                    break;
+                }
+            }
+        }
+
         [DeploymentItem("ValidationFiles\\Lakeside_Restaurant.json")]
         [DeploymentItem("ValidationFiles\\Lakeside_Restaurant-stage6-COBie.json")]
         [TestMethod]

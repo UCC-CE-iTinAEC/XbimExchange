@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Xbim.COBieLite;
+using Xbim.COBieLiteUK;
 using Xbim.Ifc2x3.MeasureResource;
 using Xbim.IO;
 using Xbim.ModelGeometry.Scene;
 using Xbim.XbimExtensions.Interfaces;
-using XbimExchanger.COBieLiteToIfc;
+using XbimExchanger.COBieLiteUkToIfc;
 using XbimExchanger.IfcHelpers;
 using XbimGeometry.Interfaces;
 
@@ -14,6 +14,7 @@ namespace Tests
 {
     [DeploymentItem(@"ValidationFiles\")]
     [DeploymentItem(@"TestFiles\")]
+    [DeploymentItem(@"RIBAETestFiles\")]
     [DeploymentItem(@"COBieAttributes.config")]
     [DeploymentItem(@"x64\","x64")]
     [DeploymentItem(@"x86\","x86")]
@@ -69,14 +70,14 @@ namespace Tests
         [TestMethod]
         public void ConvertCobieLiteToIfc()
         {
-            var facility = FacilityType.ReadJson("COBieLite.json");
+            var facility = Facility.ReadJson("004-House_Refurbishment-stage1-COBie.json");
             using (var model = XbimModel.CreateTemporaryModel())
             {
                 model.Initialise("Xbim Tester", "XbimTeam", "Xbim.Exchanger", "Xbim Development Team", "3.0");
                 model.ReloadModelFactors();
                 using (var txn = model.BeginTransaction("Convert from COBieLite"))
                 {
-                    var exchanger = new CoBieLiteToIfcExchanger(facility, model);
+                    var exchanger = new CoBieLiteUkToIfcExchanger(facility, model);
                     exchanger.Convert();
                     txn.Commit();
                     //var err = model.Validate(model.Instances, Console.Out);
