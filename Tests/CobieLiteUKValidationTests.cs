@@ -100,8 +100,9 @@ namespace Tests
         [TestMethod]
         public void ValidateSchool()
         {
-            var cobie = Facility.ReadJson(@"001 Small Primary School.CobieLite.json");
-            var req = Facility.ReadJson(@"021-Newtown_Primary_School-stage6-COBie.json");
+            string message = "";
+            var cobie = Facility.ReadCobie(@"001 BTK Sample.xlsx", out message);
+            var req = Facility.ReadJson(@"004-House_Refurbishment-stage6-COBie.json");
             var validator = new FacilityValidator();
             var result = validator.Validate(req, cobie);
             result.WriteJson(@"..\..\XlsLakesideWithDocumentsValidationStage6.json", true);
@@ -110,11 +111,12 @@ namespace Tests
         [TestMethod]
         public void ValidateVectorWorks()
         {
-            var cobie = Facility.ReadJson(@"SimpleBuilding_VW2016.json");
+            string message = "";
+            var cobie = Facility.ReadCobie(@"001 BTK Sample.xlsx", out message);
             var req = Facility.ReadJson(@"004-House_Refurbishment-stage6-COBie.json");
             var validator = new FacilityValidator();
             var result = validator.Validate(req, cobie);
-            result.WriteJson(@"..\..\XlsLakesideWithDocumentsValidationStage6.json", true);
+            result.WriteJson(@"..\..\004-House_Refurbishment-stage6-COBie-report.json", true);
 
             const string repName = @"..\..\ValidationReport.xlsx";
             var xRep = new ExcelValidationReport();

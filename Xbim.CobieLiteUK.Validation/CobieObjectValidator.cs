@@ -272,7 +272,10 @@ namespace Xbim.CobieLiteUK.Validation
                 yield break;
  
             var ret = new Dictionary<TReq, List<Category>>();
-            foreach (var reqClass in _requirementObject.Categories)
+            // AS & JR 18/02/2016 Modification to only validate on Uniclass2015 code
+            var reqClass = _requirementObject.Categories.FirstOrDefault(c => c.Classification == "Uniclass2015");
+
+            if (reqClass != null)
             {
                 var thisClassMatch = reqClass.GetClassificationMatches(submitted);
                 foreach (var matchedItem in thisClassMatch)
@@ -290,6 +293,7 @@ namespace Xbim.CobieLiteUK.Validation
                     }
                 }
             }
+
             foreach (var item in ret)
             {
                 yield return new CobieObjectCategoryMatch(item.Key) { MatchingCategories = item.Value };
