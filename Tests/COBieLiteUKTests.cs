@@ -50,22 +50,22 @@ namespace Tests
         //    //**************** semantical analysis
         //    var f = Facility.ReadJson(file);
 
-        //    var assemblies = f.Get<Assembly>().Where(i => i != null);
-        //    var assets = f.Get<Asset>().Where(i => i != null);
-        //    var assetsTypes = (f.AssetTypes ?? new List<AssetType>()).Where(i => i != null);
-        //    var attributes = f.Get<Attribute>().Where(i => i != null);
-        //    var connections = f.Get<Connection>().Where(i => i != null);
-        //    var contacts = (f.Contacts ?? new List<Contact>()).Where(i => i != null);
-        //    var documents = f.Get<Document>().Where(i => i != null);
-        //    var floors = (f.Floors ?? new List<Floor>()).Where(i => i != null);
-        //    var impacts = f.Get<Impact>().Where(i => i != null);
-        //    var issues = f.Get<Issue>().Where(i => i != null);
-        //    var jobs = f.Get<Job>().Where(i => i != null);
-        //    var resources = f.Get<Resource>().Where(i => i != null);
-        //    var spaces = f.Get<Space>().Where(i => i != null);
-        //    var spares = f.Get<Spare>().Where(i => i != null);
-        //    var systems = (f.Systems ?? new List<Xbim.COBieLiteUK.System>()).Where(i => i != null);
-        //    var zones = (f.Zones ?? new List<Zone>()).Where(i => i != null);
+        //    var assemblies = f.Get<Assembly>().Where(col => col != null);
+        //    var assets = f.Get<Asset>().Where(col => col != null);
+        //    var assetsTypes = (f.AssetTypes ?? new List<AssetType>()).Where(col => col != null);
+        //    var attributes = f.Get<Attribute>().Where(col => col != null);
+        //    var connections = f.Get<Connection>().Where(col => col != null);
+        //    var contacts = (f.Contacts ?? new List<Contact>()).Where(col => col != null);
+        //    var documents = f.Get<Document>().Where(col => col != null);
+        //    var floors = (f.Floors ?? new List<Floor>()).Where(col => col != null);
+        //    var impacts = f.Get<Impact>().Where(col => col != null);
+        //    var issues = f.Get<Issue>().Where(col => col != null);
+        //    var jobs = f.Get<Job>().Where(col => col != null);
+        //    var resources = f.Get<Resource>().Where(col => col != null);
+        //    var spaces = f.Get<Space>().Where(col => col != null);
+        //    var spares = f.Get<Spare>().Where(col => col != null);
+        //    var systems = (f.Systems ?? new List<Xbim.COBieLiteUK.System>()).Where(col => col != null);
+        //    var zones = (f.Zones ?? new List<Zone>()).Where(col => col != null);
 
         //    //report
         //    Debug.WriteLine("Assemblies: {0}", assemblies.Count());

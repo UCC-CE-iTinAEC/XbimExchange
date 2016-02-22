@@ -69,7 +69,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 {
                     var r = GetRow(runningParent, runningChild);
                     
-                    while (r == null) // it's still preparing the columns as appropriate.
+                    while (r == null) // it's still preparing the numberCols as appropriate.
                     {
                         r = GetRow(runningParent, runningChild);
                     }
@@ -137,7 +137,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 if (!vA.IsValidatedAttribute)
                     continue;
 
-                // check for table columns
+                // check for table numberCols
                 var sName = attribute.Name;
                 if (!AttributesGrid.Columns.Contains(sName))
                 {

@@ -23,7 +23,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             foreach (var runningParent in _documentsToReport)
             {
                 var r = GetRow(runningParent);
-                while (r == null) // it's still preparing the columns as appropriate.
+                while (r == null) // it's still preparing the numberCols as appropriate.
                 {
                     r = GetRow(runningParent);
                 }
@@ -41,7 +41,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 if (attribute.ExternalEntity != "DPoW Attributes")
                     continue;
 
-                // check for table columns
+                // check for table numberCols
                 var sName = attribute.Name;
                 if (!AttributesGrid.Columns.Contains(sName))
                 {

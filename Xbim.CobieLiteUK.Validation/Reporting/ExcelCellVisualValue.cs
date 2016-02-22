@@ -9,8 +9,9 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         { }
 
         private readonly ICellStyle _orange;
-        private readonly ICellStyle _green;
-        private readonly ICellStyle _red;
+        private readonly ICellStyle _lightGreen;
+        //private readonly ICellStyle _red;
+        private readonly ICellStyle _rose;
         private readonly ICellStyle _neutral;
 
         public ExcelCellVisualValue(IWorkbook workbook)
@@ -18,11 +19,14 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             _orange = GetBaseStyle(workbook);
             _orange.FillForegroundColor = IndexedColors.Orange.Index;
 
-            _green = GetBaseStyle(workbook);
-            _green.FillForegroundColor = IndexedColors.Green.Index;
+            _lightGreen = GetBaseStyle(workbook);
+            _lightGreen.FillForegroundColor = IndexedColors.LightGreen.Index;
 
-            _red = GetBaseStyle(workbook);
-            _red.FillForegroundColor = IndexedColors.Red.Index;
+            _rose = GetBaseStyle(workbook);
+            _rose.FillForegroundColor = IndexedColors.Rose.Index;
+
+            //_rose = GetBaseStyle(workbook);
+            //_rose.FillForegroundColor = IndexedColors.Rose.Index;
 
             _neutral = GetBaseStyle(workbook);
         }
@@ -45,10 +49,13 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                     excelCell.CellStyle = _orange;
                     break;
                 case VisualAttentionStyle.Green:
-                    excelCell.CellStyle = _green;
+                    excelCell.CellStyle = _lightGreen;
                     break;
+                //case VisualAttentionStyle.Red:
+                //    excelCell.CellStyle = _red;
+                //    break;
                 case VisualAttentionStyle.Red:
-                    excelCell.CellStyle = _red;
+                    excelCell.CellStyle = _rose;
                     break;
             }
 
@@ -99,8 +106,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 // dataformats from: https://poi.apache.org/apidocs/org/apache/poi/ss/usermodel/BuiltinFormats.html
                 excelCell.CellStyle.DataFormat = 0x16;
                 excelCell.SetCellValue(v.Value);
-            }
-            
+            }            
         }
     }
 }

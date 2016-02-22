@@ -40,15 +40,23 @@ namespace Tests
 
         [TestMethod]
         public void CanSaveValidationReport()
+        
         {
             // stage 0 is for documents
             // stage 1 is for zones
             // stage 6 is for assettypes
             var validated = GetValidated(@"Lakeside_Restaurant-stage6-COBie.json");
-            const string repName = @"..\..\ValidationReport.xlsx";
-            var xRep = new ExcelValidationReport();
-            var ret = xRep.Create(validated, repName);
-            Assert.IsTrue(ret, "File not created");
+            //const string repName = @"..\..\ValidationReport.xlsx";
+            //var xRep = new ExcelValidationReport();
+            //var ret = xRep.Create(validated, repName);
+            //var ret2 = xRep.CreateSpreadsheet(validated, repName2);
+            //Assert.IsTrue(ret, "File not created");
+
+
+
+            const string repName2 = "ValidationReport2.xlsx";
+            var sheet = new ExcelValidationReport();
+            sheet.CreateSpreadsheet(validated, repName2);
         }
 
         private static Facility GetValidated(string requirementFile)
