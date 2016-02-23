@@ -25,7 +25,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             _rose = GetBaseStyle(workbook);
             _rose.FillForegroundColor = IndexedColors.Rose.Index;
 
-            //_rose = GetBaseStyle(workbook);
+            //_rose = GetBaseStyle(worksheet);
             //_rose.FillForegroundColor = IndexedColors.Rose.Index;
 
             _neutral = GetBaseStyle(workbook);

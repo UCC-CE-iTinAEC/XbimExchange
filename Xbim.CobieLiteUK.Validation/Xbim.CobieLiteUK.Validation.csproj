@@ -120,6 +120,7 @@
     <Compile Include="CobieObjectValidator.cs" />
     <Compile Include="CachedPropertiesAndAttributesValidator.cs" />
     <Compile Include="DocumentsValidator.cs" />
+    <Compile Include="Reporting\ExcelCellVisualValue2.cs" />
     <Compile Include="Extensions\CobieObjectExtensions.cs" />
     <Compile Include="Extensions\CategoryExtensions.cs" />
     <Compile Include="Extensions\FacilityExtensions.cs" />

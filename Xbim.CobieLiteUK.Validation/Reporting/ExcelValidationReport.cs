@@ -116,10 +116,17 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
 
                 using (ExcelPackage excelPackage = new ExcelPackage(fileInfo))
                 {
-                    //set the workbook properties and add a default sheet in it
+                    //set the worksheet properties and add a default sheet in it
                     SetWorkbookProperties(excelPackage);
 
-                    CreateSummarySheet(excelPackage, facility);
+                    if (!CreateSummarySheet(excelPackage, facility))
+                        return false;
+
+                    if (facility.Documents != null)
+                    {
+                        if (!CreateDocumentDetailsSheet(excelPackage, facility.Documents))
+                            return false;
+                    }
 
                     Byte[] bin = excelPackage.GetAsByteArray();                    
                     File.WriteAllBytes(fileInfo.FullName, bin);
@@ -133,130 +140,217 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             return true;
         }
 
-        private static ExcelWorksheet CreateSummarySheet(ExcelPackage excelPackageIn, Facility facilityIn)
+        public string PreferredClassification = "Uniclass2015";
+
+        private bool CreateSummarySheet(ExcelPackage excelPackageIn, Facility facilityIn)
         {
-            ExcelWorksheet summarySheet = AddWorkSheet(excelPackageIn, "Summary");
-            // set column widths
-            summarySheet.Column(2).Width = 60;
-            summarySheet.Column(3).Width = 17;
-            summarySheet.Column(4).Width = 14;
-            summarySheet.Column(5).Width = 14;
-            summarySheet.Column(6).Width = 9;
-
-            // Set first rowIndex (after image) and colIndex (leave column1 blank)
-            int rowIndex = 8;
-            int colIndex = 2;
-
-            string workSheetHeader = String.Format("{0} - Verification report - {1}", facilityIn.Project.Name, DateTime.Now.ToShortDateString());
-            AddWorkSheetHeader(summarySheet, ref rowIndex, colIndex, workSheetHeader, 22);
-
-            rowIndex += 2;
-            string PreferredClassification = "Uniclass2015";
-
-            if (facilityIn.AssetTypes != null && facilityIn.AssetTypes.Any())
+            try
             {
-                var assetTypesReport = new GroupingObjectSummaryReport<CobieObject>(facilityIn.AssetTypes, "Asset types report");
-                var report = assetTypesReport.GetReport(PreferredClassification);
+                ExcelWorksheet summarySheet = AddWorkSheet(excelPackageIn, "Summary");
 
-                int numberRows = report.Rows.Count;
-                int numberCols = numberRows > 0 ? report.Rows[0].ItemArray.Count()-1 : 0;
+                // Set first rowIndex (after image) and colIndex (leave column1 blank)
+                int rowIndex = 8;
+                int colIndex = 2;
 
-                //DataTable assetTypesReportTable = CreateDataTable(summarySheet, facilityIn, ref rowIndex, colIndex, numberRows, numberCols, true); // Generates DataTable
-                
-                //CreateData(summarySheet, ref rowIndex, colIndex, assetTypesReportTable);
+                string workSheetHeader = String.Format("{0} - Verification report - {1}", facilityIn.Project.Name, DateTime.Now.ToShortDateString());
+                AddWorkSheetHeader(summarySheet, ref rowIndex, colIndex, workSheetHeader, 22);
 
-                foreach (DataColumn dataCol in report.Columns) //Creating Headings
+                rowIndex += 2;
+                if (facilityIn.AssetTypes != null && facilityIn.AssetTypes.Any())
                 {
-                    if (dataCol == report.Columns[0]) continue;
-
-                    var cell = summarySheet.Cells[rowIndex, colIndex];
-
-                    //Setting the background color of header cells
-                    cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(243, 245, 244));
-
-                    //Set borders.
-                    cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
-                    cell.Style.Border.Bottom.Color.SetColor(Color.FromArgb(62, 177, 200));
-
-                    //Setting Value in cell
-                    cell.Value = dataCol.Caption;
-
-                    colIndex++;
+                    DataTable assetTypesReport = new GroupingObjectSummaryReport<CobieObject>(facilityIn.AssetTypes, "Asset types report").GetReport(PreferredClassification);
+                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, assetTypesReport, "Asset types report");
+                }
+                if (facilityIn.Zones != null && facilityIn.Zones.Any())
+                {
+                    DataTable zonesReport = new GroupingObjectSummaryReport<CobieObject>(facilityIn.Zones, "Zones report").GetReport(PreferredClassification);
+                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, zonesReport, "Zones report");
                 }
 
-                // Reset column index
-                colIndex = 2;
-
-                //// Output report data to assetTypesReportTable
-                //int dataRowIndex = 0;
-                if (numberRows > 0)
+                if (facilityIn.Documents != null && facilityIn.Documents.Any())
                 {
-                    foreach (DataRow row in report.Rows)
+                    DataTable docReport = new DocumentsReport(facilityIn.Documents).GetReport("ResponsibleRole");
+                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, docReport, "Documents verification report");
+                }
+
+                // set column widths                
+                SetColumnWidths(summarySheet);
+                summarySheet.Column(2).Width = 60;
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                //log the error
+                Logger.Error("Failed to create Summary Sheet", e);
+                return false;
+            }
+        }
+
+        private bool CreateDocumentDetailsSheet(ExcelPackage excelPackageIn, List<Document> list)
+        {
+            try
+            {
+                ExcelWorksheet documentsWorkSheet = AddWorkSheet(excelPackageIn, "Documents");
+
+                // Set first rowIndex (after image) and colIndex (leave column1 blank)
+                int rowIndex = 8;
+                int colIndex = 2;
+
+                string workSheetHeader = "Documents Report";
+                AddWorkSheetHeader(documentsWorkSheet, ref rowIndex, colIndex, workSheetHeader, 22);
+                rowIndex += 2;
+
+                DataTable drep = new DocumentsDetailedReport(list).AttributesGrid;
+                WriteReportToPage(documentsWorkSheet, ref rowIndex, ref colIndex, drep, "Detailed Documents report");
+
+                SetColumnWidths(documentsWorkSheet);
+                return true;
+            }
+            catch (Exception e)
+            {
+                //log the error
+                Logger.Error("Failed to create Summary Sheet", e);
+                return false;
+            }
+        }
+        private void WriteReportToPage(ExcelWorksheet excelWorkSheet, ref int rowIndex, ref int colIndex, DataTable report, string reportTitle)
+        {
+            int col = colIndex;
+
+            if (!String.IsNullOrWhiteSpace(reportTitle))
+            {
+                AddWorkSheetHeader(excelWorkSheet, ref rowIndex, col, reportTitle, 14);
+                rowIndex += 2;
+            } 
+
+            int numberRows = report.Rows.Count;
+            int numberCols = numberRows > 0 ? report.Rows[0].ItemArray.Count()-1 : 0;
+
+            foreach (DataColumn dataCol in report.Columns) //Creating Headings
+            {
+                if (dataCol == report.Columns[0]) continue;
+
+                var cell = excelWorkSheet.Cells[rowIndex, col];
+
+                //Setting Value in cell
+                cell.Value = dataCol.Caption;
+                FormatTableHeaderCell(cell);
+
+                col++;
+            }
+
+            // Reset column index
+            col = colIndex;
+
+            // Output report data to assetTypesReportTable
+            if (numberRows > 0)
+            {
+                int fromRow = rowIndex + 1;
+
+                foreach (DataRow row in report.Rows)
+                {
+                    //excelRow = summaryPage.Row(startingRow);
+                    rowIndex++;
+                    col = 1;
+                    var writer = new ExcelCellVisualValue2(excelWorkSheet);
+                    foreach (DataColumn tCol in report.Columns)
                     {
-                        rowIndex++;
-                        for (int col = 0; col < numberCols; col++)
+                        ExcelRange cell = excelWorkSheet.Cells[rowIndex, col];
+
+                        if (tCol.AutoIncrement)
+                            continue;
+                        col++;
+                        if (row[tCol] == DBNull.Value)
+                            continue;
+                        cell = excelWorkSheet.Cells[rowIndex, col];
+
+                        // ReSharper disable once CanBeReplacedWithTryCastAndCheckForNull
+                        if (row[tCol] is IVisualValue)
                         {
-                            string name = row.ItemArray[col + 1].GetType().Name;
-                            switch (name)
+                            //IVisualValue value = row[tCol] as IVisualValue;
+                            //var intValue = value.VisualValue as Xbim.COBieLiteUK.IntegerAttributeValue;
+                            //cell.Value = intValue.Value;
+                            //cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                            //cell.Style.Fill.BackgroundColor.SetColor(GetColourForResult(value.AttentionStyle));
+                            writer.SetCell(cell, (IVisualValue)row[tCol]);
+                        }
+                        else
+                        {
+                            switch (tCol.DataType.Name)
                             {
                                 case "String":
-                                    summarySheet.Cells[rowIndex, col + colIndex].Value = row.ItemArray[col + 1];
+                                    cell.Value = (string)row[tCol];
                                     break;
                                 case "Int32":
-                                    summarySheet.Cells[rowIndex, col + colIndex].Value = Convert.ToInt32(row.ItemArray[col + 1]);
-                                    break;
-                                case "VisualValue":
-                                    IVisualValue value = row.ItemArray[col + 1] as IVisualValue;
-
-                                    if (value.VisualValue is Xbim.COBieLiteUK.IntegerAttributeValue)
-                                    {
-                                        var intValue = value.VisualValue as Xbim.COBieLiteUK.IntegerAttributeValue;
-                                        summarySheet.Cells[rowIndex, col + colIndex].Value = intValue.Value;
-                                        summarySheet.Cells[rowIndex, col + colIndex].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                                        summarySheet.Cells[rowIndex, col + colIndex].Style.Fill.BackgroundColor.SetColor(GetColourForResult(value.AttentionStyle));
-                                    }
-
+                                    cell.Value = (Convert.ToInt32(row[tCol]));
                                     break;
                                 default:
-                                    summarySheet.Cells[rowIndex, col + colIndex].Value = row.ItemArray[col + 1];
+                                    cell.Value = ((string)row[tCol]);
                                     break;
                             }
-
                         }
                     }
                 }
 
+                int toRow = rowIndex;
+                int toCol = report.Columns.Count;
+
+                FormatTableCellBorders(excelWorkSheet, fromRow, colIndex, toRow, toCol);
             }
-            return summarySheet;
+            rowIndex += 3;
         }
 
-        private static Color GetColourForResult(VisualAttentionStyle attentionStyle)
+        private void FormatTableHeaderCell(ExcelRange cell)
+        {
+            cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+            cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(243, 245, 244));
+
+            //Set borders.
+            cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
+            cell.Style.Border.Bottom.Color.SetColor(Color.FromArgb(62, 177, 200));
+        }
+
+        private void FormatTableCellBorders(ExcelWorksheet workSheet, int fromRow, int fromCol, int toRow, int toCol)
+        {
+            workSheet.Cells[fromRow, fromCol, toRow, toCol].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+            workSheet.Cells[fromRow, fromCol, toRow, toCol].Style.Border.Bottom.Color.SetColor(Color.FromArgb(242, 242, 242));
+
+
+        }
+
+        private Color GetColourForResult(VisualAttentionStyle attentionStyle)
         {
             switch (attentionStyle)
             {
                 case VisualAttentionStyle.Red:
-                    return Color.Red;
+                    return Color.FromArgb(255, 183, 185);
 
                 case VisualAttentionStyle.Amber:
-                    return Color.Yellow;
+                    return Color.Orange;
 
                 case VisualAttentionStyle.Green:
-                    return Color.Green;
-
+                    return Color.FromArgb(198, 239, 206);
                 default:
                     return Color.White;
             }
         }
 
-        private static ExcelWorksheet AddWorkSheet(ExcelPackage excelPackageIn, string sheetNameIn)
+        private void SetWorkbookProperties(ExcelPackage excelPackageIn)
+        {
+            //Here setting some document properties
+            excelPackageIn.Workbook.Properties.Author = "Xbim Cobie Lite UK";
+            excelPackageIn.Workbook.Properties.Title = "Xbim Cobie Lite UK Validation";
+        }
+
+        private ExcelWorksheet AddWorkSheet(ExcelPackage excelPackageIn, string sheetNameIn)
         {
             excelPackageIn.Workbook.Worksheets.Add(sheetNameIn);
             ExcelWorksheet workSheet = excelPackageIn.Workbook.Worksheets[sheetNameIn];
             workSheet.Name = sheetNameIn;
             workSheet.Cells.Style.Font.Size = 11; 
             workSheet.Cells.Style.Font.Name = "Arial";
-            workSheet.Column(1).Width = 3;
+            //workSheet.Column(1).Width = 3;
             workSheet.View.ShowGridLines = false;
 
             AddImage(workSheet, 1, 1, Xbim.CobieLiteUK.Validation.Properties.Resources.btk_logo_beta);
@@ -264,72 +358,22 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             return workSheet;
         }
 
-        private static void AddWorkSheetHeader(ExcelWorksheet workSheetIn, ref int rowIndexIn, int colIndexIn, string headerIn, float fontSizeIn)
+        private void SetColumnWidths(ExcelWorksheet excelWorkSheet)
+        {
+            excelWorkSheet.Cells[excelWorkSheet.Dimension.Address].AutoFitColumns();
+            excelWorkSheet.Column(1).Width = 3;
+        }
+
+        private void AddWorkSheetHeader(ExcelWorksheet workSheetIn, ref int rowIndexIn, int colIndexIn, string headerIn, float fontSizeIn)
         {
             workSheetIn.Cells[rowIndexIn, colIndexIn].Value = headerIn;
             workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Color.SetColor(Color.FromArgb(89, 43, 95));
             workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Size = fontSizeIn;
             workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Name = "Azo Sans";
             workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Bold = true;
-        }
+        }        
 
-        private static DataTable CreateDataTable(ExcelWorksheet workSheetIn, Facility facilityIn, ref int rowIndex, int colIndexIn, int numberRows, int numberCols, bool addHeader)
-        {
-            DataTable dataTable = new DataTable();
-            for (int col = 0; col < numberCols; col++)
-            {
-                dataTable.Columns.Add(col.ToString());
-            }
-
-            for (int row = 0; row < numberRows; row++)
-            {
-                DataRow dataRow = dataTable.NewRow();
-                foreach (DataColumn dataCol in dataTable.Columns)
-                {
-                    dataRow[dataCol.ToString()] = row;
-                }
-
-                dataTable.Rows.Add(dataRow);
-            }
-
-            if (addHeader)
-            {
-                CreateDataTableHeader(workSheetIn, ref rowIndex, colIndexIn, dataTable);
-            }
-            return dataTable;
-        }
-
-        private static void CreateDataTableHeader(ExcelWorksheet workSheetIn, ref int rowIndex, int colIndex, DataTable dataTableIn)
-        {
-            //int colIndex = 1;
-            foreach (DataColumn dataCol in dataTableIn.Columns) //Creating Headings
-            {
-                var cell = workSheetIn.Cells[rowIndex, colIndex];
-
-                //Setting the background color of header cells
-                cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(243, 245, 244));
-
-                //Set borders.
-                cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
-                cell.Style.Border.Bottom.Color.SetColor(Color.FromArgb(62, 177, 200));
-
-                //Setting Value in cell
-                cell.Value = dataCol.Caption;
-
-                colIndex++;
-            }
-        }
-
-       
-        private static void SetWorkbookProperties(ExcelPackage excelPackageIn)
-        {
-            //Here setting some document properties
-            excelPackageIn.Workbook.Properties.Author = "Xbim Cobie Lite UK";
-            excelPackageIn.Workbook.Properties.Title = "Xbim Cobie Lite UK Validation";
-        }
-
-        private static void AddImage(ExcelWorksheet workSheetIn, int colIndexIn, int rowIndexIn, Image image)
+        private void AddImage(ExcelWorksheet workSheetIn, int colIndexIn, int rowIndexIn, Image image)
         {
             //How to Add a Image using EP Plus
             //Bitmap image = new Bitmap(filePath);
@@ -339,18 +383,9 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 picture = workSheetIn.Drawings.AddPicture("pic" + rowIndexIn.ToString() + colIndexIn.ToString(), image);
                 picture.From.Column = colIndexIn;
                 picture.From.Row = rowIndexIn;
-                picture.From.ColumnOff = Pixel2MTU(2); //Two pixel space for better alignment
-                picture.From.RowOff = Pixel2MTU(2);//Two pixel space for better alignment
                 //picture.SetSize(100, 100);
             }
         }
-
-        public static int Pixel2MTU(int pixels)
-        {
-            int mtus = pixels * 9525;
-            return mtus;
-        }
-
 
         
         //=====================================================
@@ -482,6 +517,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         //}
         //UNCOMMENT
 
+
         // UNCOMMENT
         //private static bool CreateDetailSheet(ISheet detailSheet, TwoLevelRequirementPointer<AssetType, Asset> requirementPointer)
         //{
@@ -612,11 +648,10 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         // UNCOMMENT
 
         
-
         /// <summary>
         /// sets the Classification preferred for priority purposes.
         /// </summary>
-        public string PreferredClassification = "Uniclass2015";
+        //public string PreferredClassification = "Uniclass2015";
 
         //UNCOMMENT
         //private bool CreateSummarySheet(ISheet summaryPage, Facility facility)
@@ -799,46 +834,45 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
 
 
 
-            OfficeOpenXml.Style.XmlAccess.ExcelNamedStyleXml cellStyle = summaryPage.Workbook.Styles.CreateNamedStyle("cellStyle");
-            cellStyle.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
-            cellStyle.Style.Border.Bottom.Color.SetColor(Color.SkyBlue);
-            cellStyle.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-            cellStyle.Style.Border.Right.Style = ExcelBorderStyle.Thin;
-            cellStyle.Style.Border.Top.Style = ExcelBorderStyle.Thin;
+            //var cellStyle = summaryPage.Workbook.CreateCellStyle();
+            //cellStyle.BorderBottom = BorderStyle.Thick;
+            //cellStyle.BottomBorderColor = IndexedColors.SkyBlue.Index;
+            //cellStyle.BorderLeft = BorderStyle.Thin;
+            //cellStyle.BorderRight = BorderStyle.Thin;
+            //cellStyle.BorderTop = BorderStyle.Thin;
 
-            cellStyle.Style.Fill.PatternType = ExcelFillStyle.Solid;
-            cellStyle.Style.Fill.PatternColor.SetColor(Color.LightSlateGray);
+            //cellStyle.FillPattern = FillPattern.SolidForeground;
+            //cellStyle.FillForegroundColor = IndexedColors.Grey25Percent.Index;
 
+            //var index = IndexedColors.ValueOf("Grey25Percent");
 
-            var failCellStyle = summaryPage.Workbook.Styles.CreateNamedStyle("failCellStyle");
-            failCellStyle.Style.Fill.PatternType = ExcelFillStyle.Solid;
-            failCellStyle.Style.Fill.PatternColor.SetColor(Color.LightPink);
+            //var failCellStyle = summaryPage.Workbook.CreateCellStyle();
+            //failCellStyle.FillPattern = FillPattern.SolidForeground;
+            //failCellStyle.FillForegroundColor = IndexedColors.Rose.Index;
 
-            //ExcelRow excelRow = summaryPage.Row(startingRow);
-
+            ExcelRow excelRow = summaryPage.Row(startingRow);
             ExcelRange excelCell = summaryPage.Cells[startingRow, iRunningColumn];
 
-            excelCell.Value = table.TableName;
+            excelCell.Value = (table.TableName);
             startingRow++;
 
-            //excelRow = summaryPage.Row(startingRow);
+            excelRow = summaryPage.Row(startingRow);
             foreach (DataColumn tCol in table.Columns)
             {
                 if (tCol.AutoIncrement)
                     continue;
                 var runCell = summaryPage.Cells[startingRow, iRunningColumn];
                 iRunningColumn++;
-                runCell.Value = tCol.Caption;
-                runCell.StyleName = "cellStyle";                
+                runCell.Value = (tCol.Caption);
+                //runCell.CellStyle = cellStyle;
             }
 
             startingRow++;
 
             //var writer = new ExcelCellVisualValue(summaryPage.Workbook);
-
             foreach (DataRow row in table.Rows)
             {
-                //excelRow = summaryPage.Row(startingRow);
+                excelRow = summaryPage.Row(startingRow);
                 startingRow++;
                 iRunningColumn = -1;
                 foreach (DataColumn tCol in table.Columns)
@@ -860,7 +894,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                         switch (tCol.DataType.Name)
                         {
                             case "String":
-                                excelCell.Value = (string)row[tCol];
+                                excelCell.Value = ((string)row[tCol]);
                                 break;
                             case "Int32":
                                 excelCell.Value = (Convert.ToInt32(row[tCol]));
@@ -878,7 +912,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             // sets all used numberCols to autosize
             for (int irun = 0; irun < iRunningColumn; irun++)
             {
-                summaryPage.Column(iRunningColumn).Width = irun;
+                //summaryPage.AutoSizeColumn(irun);
             }
             return startingRow + 1;
         }
