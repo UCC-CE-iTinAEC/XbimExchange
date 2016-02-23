@@ -10,6 +10,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Style;
 using System.Drawing;
+using System.Globalization;
 
 namespace Xbim.CobieLiteUK.Validation.Reporting
 {
@@ -26,27 +27,13 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
 
         public ExcelCellVisualValue2(ExcelWorksheet worksheet)
         {
-            //_orange = GetBaseStyle(worksheet);
-            //_orange.Fill.BackgroundColor.SetColor(Color.Orange);
-
-            //_lightGreen = GetBaseStyle(worksheet);
-            //_lightGreen.Fill.BackgroundColor.SetColor(Color.LightGreen);
-
-            //_red = GetBaseStyle(worksheet);
-            //_red.Fill.BackgroundColor.SetColor(Color.Red);
-
-
-            //_neutral = GetBaseStyle(worksheet);
         }
 
-        //private ExcelStyle GetBaseStyle(ExcelWorksheet worksheet)
-        //{
-        //    var style = worksheet.Cells.Style;
-        //    //style.Borders. = style.BorderLeft = style.BorderRight = style.BorderTop = BorderStyle.Thin;
-        //    style.Border.BorderAround(ExcelBorderStyle.Thin);
-        //    return style;
-        //}
-
+        /// <summary>
+        /// Sets cell value and style based on IVisualValue
+        /// </summary>
+        /// <param name="excelCell">Cell to apply value and style to</param>
+        /// <param name="visualValue"></param>
         internal void SetCell(ExcelRange excelCell, IVisualValue visualValue)
         {
             if (visualValue.AttentionStyle == VisualAttentionStyle.None)
@@ -57,13 +44,11 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             {
                 case VisualAttentionStyle.Amber:
                     excelCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    excelCell.Style.Fill.BackgroundColor.SetColor(Color.Yellow);
-                    //excelCell.CellStyle = _orange;
+                    excelCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(255, 255, 204));
                     break;
                 case VisualAttentionStyle.Green:
                     excelCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
                     excelCell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(198, 239, 206));
-                    //excelCell.CellStyle = _lightGreen;
                     break; ;
                 case VisualAttentionStyle.Red:
                     excelCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -75,42 +60,29 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             var attribute = visualValue.VisualValue;
             if (attribute is StringAttributeValue)
             {
-                //excelCell.SetCellType(CellType.String);
-                //excelCell.SetCellValue(((StringAttributeValue)(attribute)).Value);
-
                 excelCell.Value = ((StringAttributeValue)(attribute)).Value;
-
-                // todo: can we set here ? cellStyle.Alignment = HorizontalAlignment.Fill;
             }
             else if (attribute is IntegerAttributeValue)
             {
-                //excelCell.SetCellType(CellType.Numeric);
                 var v = ((IntegerAttributeValue)(attribute)).Value;
                 if (v.HasValue)
                 {
-                    // ReSharper disable once RedundantCast
-                    //excelCell.SetCellValue((double)v.Value);
                     excelCell.Value = (double)v.Value;
                 }
             }
             else if (attribute is DecimalAttributeValue)
             {
-                //excelCell.SetCellType(CellType.Numeric);
                 var v = ((DecimalAttributeValue)(attribute)).Value;
                 if (v.HasValue)
                 {
-                    // ReSharper disable once RedundantCast
-                    //excelCell.SetCellValue((double)v.Value);
                     excelCell.Value = (double)v.Value;
                 }
             }
             else if (attribute is BooleanAttributeValue)
             {
-                //excelCell.SetCellType(CellType.Boolean);
                 var v = ((BooleanAttributeValue)(attribute)).Value;
                 if (v.HasValue)
                 {
-                    //excelCell.SetCellValue(v.Value);
                     excelCell.Value = v.Value;
                 }
             }
@@ -125,7 +97,8 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 // dataformats from: https://poi.apache.org/apidocs/org/apache/poi/ss/usermodel/BuiltinFormats.html
                 //excelCell.CellStyle.DataFormat = 0x16;
                 //excelCell.SetCellValue(v.Value);
-                excelCell.Value = v.Value;
+                excelCell.Value = v.Value.ToLongDateString();
+                excelCell.Value = v.Value.ToString("G", DateTimeFormatInfo.InvariantInfo);
             }
         }
     }
