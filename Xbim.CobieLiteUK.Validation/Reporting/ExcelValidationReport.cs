@@ -60,7 +60,8 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             {
                 using (var spreadsheetStream = new FileStream(ssFileName, FileMode.Create, FileAccess.Write))
                 {
-                    var result = Create(facility, spreadsheetStream, format);
+                    //var result = Create(facility, spreadsheetStream, format);
+                    var result = CreateSpreadsheet(facility, spreadsheetStream);
                     spreadsheetStream.Close();
                     return result;
                 }
@@ -103,20 +104,11 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         /// <param name="facility"></param>
         /// <param name="suggestedFilename"></param>
         /// <returns></returns>
-        public bool CreateSpreadsheet(Facility facility, string suggestedFilename)
+        public bool CreateSpreadsheet(Facility facility, Stream destinationStream)
         {
-            var ssFileName = Path.ChangeExtension(suggestedFilename, "xlsx");
-            if (File.Exists(ssFileName))
-            {
-                File.Delete(ssFileName);
-            }
             try
             {
-                var outputDir = @"C:\github\XbimExchange\TestResults\";
-                // Create the file using the FileInfo objectdata
-                var fileInfo = new FileInfo(outputDir + suggestedFilename);
-
-                using (ExcelPackage excelPackage = new ExcelPackage(fileInfo))
+                using (ExcelPackage excelPackage = new ExcelPackage(destinationStream))
                 {
                     //set the worksheet properties and add a default sheet in it
                     SetWorkbookProperties(excelPackage);
@@ -193,20 +185,18 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                         //    return false;
                         //UNCOMMENT
                     }
-                    
 
-                    Byte[] bin = excelPackage.GetAsByteArray();
-                    File.WriteAllBytes(fileInfo.FullName, bin);
+
+                    excelPackage.SaveAs(destinationStream);
                 }
             }
             catch (Exception e)
             {
-                Logger.ErrorFormat("Failed to save {0}, {1}", ssFileName, e.Message);
+                Logger.ErrorFormat("Failed to save {0}, {1}", "spreadsheet", e.Message);
                 return false;
             }
             return true;
         }
-
 
         public string PreferredClassification = "Uniclass2015";
 
