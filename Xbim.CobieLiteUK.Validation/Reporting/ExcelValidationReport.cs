@@ -93,6 +93,9 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             return Create(facility, filename, format);
         }
 
+        //private List<KeyValuePair<string, string>> LinksToDetailsSheets = new List<KeyValuePair<string, string>>();
+        private Dictionary<string, string> LinksToDetailsSheets = new Dictionary<string, string>();
+
         // ##### EPPlus START ########
         /// <summary>
         /// 
@@ -102,8 +105,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         /// <returns></returns>
         public bool CreateSpreadsheet(Facility facility, string suggestedFilename)
         {
-            SpreadSheetFormat format = SpreadSheetFormat.Xlsx;
-            var ssFileName = Path.ChangeExtension(suggestedFilename, format.ToString());
+            var ssFileName = Path.ChangeExtension(suggestedFilename, "xlsx");
             if (File.Exists(ssFileName))
             {
                 File.Delete(ssFileName);
@@ -119,6 +121,24 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                     //set the worksheet properties and add a default sheet in it
                     SetWorkbookProperties(excelPackage);
 
+
+                    var facReport = new FacilityReport(facility);
+                    var iRunningWorkBook = 1;
+                    foreach (var assetType in facReport.AssetRequirementGroups)
+                    {
+                        // only report items with any assets submitted (a different report should probably be provided otherwise)
+                        if (assetType.GetSubmittedAssetsCount() < 1)
+                            continue;
+
+                        var firstOrDefault = assetType.RequirementCategories.FirstOrDefault(cat => cat.Classification == @"Uniclass2015");
+                        if (firstOrDefault == null)
+                            continue;
+                        var tName = firstOrDefault.Code;
+                        var validName = String.Format("{0} {1}", iRunningWorkBook++, CreateSafeSheetName(tName));
+                        LinksToDetailsSheets.Add(tName, validName);
+                    }
+
+
                     if (!CreateSummarySheet(excelPackage, facility))
                         return false;
 
@@ -128,9 +148,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                             return false;
                     }
 
-                    var facReport = new FacilityReport(facility);
-
-                    var iRunningWorkBook = 1;
+                    iRunningWorkBook = 1;
                     foreach (var assetType in facReport.AssetRequirementGroups)
                     {
                         // only report items with any assets submitted (a different report should probably be provided otherwise)
@@ -175,7 +193,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                         //    return false;
                         //UNCOMMENT
                     }
-
+                    
 
                     Byte[] bin = excelPackage.GetAsByteArray();
                     File.WriteAllBytes(fileInfo.FullName, bin);
@@ -188,6 +206,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             }
             return true;
         }
+
 
         public string PreferredClassification = "Uniclass2015";
 
@@ -333,37 +352,42 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
     
 
         private void WriteReportToPage(ExcelWorksheet excelWorkSheet, ref int rowIndex, ref int colIndex, DataTable report, string reportTitle)
-        {
-            int col = colIndex;
-
-            if (!String.IsNullOrWhiteSpace(reportTitle))
+        {           
+            // Output report data
+            if (report.Rows.Count > 0)
             {
-                AddWorkSheetHeader(excelWorkSheet, ref rowIndex, col, reportTitle, 14);
-                rowIndex += 2;
-            }
+                int col = colIndex;
 
-            int numberRows = report.Rows.Count;
-            int numberCols = numberRows > 0 ? report.Rows[0].ItemArray.Count() - 1 : 0;
+                if (!String.IsNullOrWhiteSpace(reportTitle))
+                {
+                    AddWorkSheetHeader(excelWorkSheet, ref rowIndex, col, reportTitle, 14);
 
-            foreach (DataColumn dataCol in report.Columns) //Creating Headings
-            {
-                if (dataCol == report.Columns[0]) continue;
+                    if (reportTitle == "Documents verification report")
+                    {
+                        rowIndex++;
+                        SetHyperlinkToWorksheet(excelWorkSheet.Cells[rowIndex, colIndex], "Documents", "A1", "Go to report");
+                    }
 
-                var cell = excelWorkSheet.Cells[rowIndex, col];
+                    rowIndex += 2;
+                }
 
-                //Setting Value in cell
-                cell.Value = dataCol.Caption;
-                FormatTableHeaderCell(cell);
+                //Creating Headings
+                foreach (DataColumn dataCol in report.Columns)
+                {
+                    if (dataCol == report.Columns[0]) continue;
 
-                col++;
-            }
+                    var cell = excelWorkSheet.Cells[rowIndex, col];
 
-            // Reset column index
-            col = colIndex;
+                    //Setting Value in cell
+                    cell.Value = dataCol.Caption;
+                    FormatTableHeaderCell(cell);
 
-            // Output report data to assetTypesReportTable
-            if (numberRows > 0)
-            {
+                    col++;
+                }
+
+                // Reset column index
+                col = colIndex;
+
                 int fromRow = rowIndex + 1;
 
                 foreach (DataRow row in report.Rows)
@@ -371,17 +395,28 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                     //excelRow = summaryPage.Row(startingRow);
                     rowIndex++;
                     col = 1;
+
+                    if (reportTitle == "Asset types report")
+                    {
+                        if (LinksToDetailsSheets.ContainsKey((string)row[col]))
+                        {
+                            //string sheetName = String.Format("{0}", CreateSafeSheetName((string)row[col]));
+                            string sheetName;
+                            LinksToDetailsSheets.TryGetValue((string)row[col], out sheetName);
+                            //sheetName = "1 Ss_30_25_22_90 A";
+                            SetHyperlinkToWorksheet(excelWorkSheet.Cells[rowIndex, colIndex], sheetName, "A1", "Go to report");
+                        }
+                    }
+
                     var writer = new ExcelCellVisualValue2(excelWorkSheet);
                     foreach (DataColumn tCol in report.Columns)
                     {
-                        ExcelRange cell = excelWorkSheet.Cells[rowIndex, col];
-
                         if (tCol.AutoIncrement)
                             continue;
                         col++;
                         if (row[tCol] == DBNull.Value)
                             continue;
-                        cell = excelWorkSheet.Cells[rowIndex, col];
+                        ExcelRange cell = excelWorkSheet.Cells[rowIndex, col];
 
                         // ReSharper disable once CanBeReplacedWithTryCastAndCheckForNull
                         if (row[tCol] is IVisualValue)
@@ -410,10 +445,10 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 int toCol = report.Columns.Count;
 
                 FormatTableCellBorders(excelWorkSheet, fromRow, colIndex, toRow, toCol);
-            }
-            rowIndex += 3;
+                rowIndex += 3;
 
-            SetColumnWidths(excelWorkSheet);
+                SetColumnWidths(excelWorkSheet);
+            }
         }
 
         private void FormatTableHeaderCell(ExcelRange cell)
@@ -426,12 +461,25 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             cell.Style.Border.Bottom.Color.SetColor(Color.FromArgb(62, 177, 200));
         }
 
+        private void SetHyperlinkToWorksheet(ExcelRange cell, string targetSheetName, string targetCell, string displayText)
+        {
+            targetSheetName = String.Format("'{0}'", targetSheetName);
+            cell.Hyperlink = new ExcelHyperLink(String.Format("{0}!{1}",targetSheetName, targetCell), displayText);
+            SetHyperlinkFormat(cell);
+        }
+        private void SetHyperlinkFormat(ExcelRange cell)
+        {
+            cell.Style.Font.Color.SetColor(Color.FromArgb(0, 125, 158));
+            cell.Style.Font.Size = 11;
+            cell.Style.Font.UnderLine = true;
+            cell.Style.Font.Name = "Calibri";
+
+        }
+
         private void FormatTableCellBorders(ExcelWorksheet workSheet, int fromRow, int fromCol, int toRow, int toCol)
         {
             workSheet.Cells[fromRow, fromCol, toRow, toCol].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
             workSheet.Cells[fromRow, fromCol, toRow, toCol].Style.Border.Bottom.Color.SetColor(Color.FromArgb(242, 242, 242));
-
-
         }
 
         //private Color GetColourForResult(VisualAttentionStyle attentionStyle)
@@ -492,12 +540,12 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         {
             //How to Add a Image using EP Plus
             //Bitmap image = new Bitmap(filePath);
-            ExcelPicture picture = null;
             if (image != null)
             {
-                picture = workSheetIn.Drawings.AddPicture("pic" + rowIndexIn.ToString() + colIndexIn.ToString(), image);
+                ExcelPicture picture = workSheetIn.Drawings.AddPicture("Bim Toolkit", image);
                 picture.From.Column = colIndexIn;
                 picture.From.Row = rowIndexIn;
+                picture.SetSize(image.Width, image.Height);
                 //picture.SetSize(100, 100);
             }
         }
