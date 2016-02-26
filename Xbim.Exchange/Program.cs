@@ -87,7 +87,7 @@ namespace Xbim.Exchange
                         using (var stream = File.Create(verificationResults))
                         {
                             var report = new ExcelValidationReport();
-                            report.Create(result, stream, ExcelValidationReport.SpreadSheetFormat.Xlsx);
+                            report.CreateSpreadsheet(result, stream);
                             stream.Close();
                         }
 

@@ -24,7 +24,7 @@ namespace Xbim.COBieLiteUK.Validation.Profiling
             using (var stream = File.Create(@"Lakeside_Restaurant_fabric_only.report.xlsx"))
             {
                 var report = new ExcelValidationReport();
-                report.Create(result, stream, ExcelValidationReport.SpreadSheetFormat.Xlsx);
+                report.CreateSpreadsheet(result, stream);
                 stream.Close();
             }
         }
