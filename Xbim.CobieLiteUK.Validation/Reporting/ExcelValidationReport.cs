@@ -206,18 +206,18 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 if (facilityIn.AssetTypes != null && facilityIn.AssetTypes.Any())
                 {
                     DataTable assetTypesReport = new GroupingObjectSummaryReport<CobieObject>(facilityIn.AssetTypes, "Asset types report").GetReport(PreferredClassification);
-                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, assetTypesReport, "Asset types report");
+                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, assetTypesReport, "Asset types report", true);
                 }
                 if (facilityIn.Zones != null && facilityIn.Zones.Any())
                 {
                     DataTable zonesReport = new GroupingObjectSummaryReport<CobieObject>(facilityIn.Zones, "Zones report").GetReport(PreferredClassification);
-                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, zonesReport, "Zones report");
+                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, zonesReport, "Zones report", true);
                 }
 
                 if (facilityIn.Documents != null && facilityIn.Documents.Any())
                 {
                     DataTable docReport = new DocumentsReport(facilityIn.Documents).GetReport("ResponsibleRole");
-                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, docReport, "Documents verification report");
+                    WriteReportToPage(summarySheet, ref rowIndex, ref colIndex, docReport, "Documents verification report", true);
                 }
 
                 // set column width
@@ -248,7 +248,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 rowIndex += 2;
 
                 DataTable drep = new DocumentsDetailedReport(list).AttributesGrid;
-                WriteReportToPage(documentsWorkSheet, ref rowIndex, ref colIndex, drep, "Detailed Documents report");
+                WriteReportToPage(documentsWorkSheet, ref rowIndex, ref colIndex, drep, "Detailed Documents report", true);
 
                 return true;
             }
@@ -270,15 +270,55 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 int rowIndex = 8;
                 int colIndex = 2;
 
+                var rep = new TwoLevelDetailedGridReport<AssetType, Asset>(requirementPointer);
+                rep.PrepareReport();     
+
                 string workSheetHeader = "Asset Type and assets report";
                 AddWorkSheetHeader(detailsWorkSheet, ref rowIndex, colIndex, workSheetHeader, 22);
                 rowIndex += 2;
 
-                var rep = new TwoLevelDetailedGridReport<AssetType, Asset>(requirementPointer);
-                rep.PrepareReport();               
+                ExcelRange cell = detailsWorkSheet.Cells[rowIndex, colIndex];
 
+                cell.Value = "Name:";
+                SetDetailSheetHeadingStyles(cell, true, true, false);
+
+                cell = detailsWorkSheet.Cells[rowIndex, colIndex + 1];
+                cell.Value = requirementPointer.Name;
+                SetDetailSheetHeadingStyles(cell, false, false, false);
+                rowIndex++;
+
+                cell = detailsWorkSheet.Cells[rowIndex, colIndex];
+                cell.Value = "External id:";
+                SetDetailSheetHeadingStyles(cell, true, true, true);
+
+                cell = detailsWorkSheet.Cells[rowIndex, colIndex + 1];
+                cell.Value = requirementPointer.ExternalId;
+                SetDetailSheetHeadingStyles(cell, false, false, true);
+
+                rowIndex += 2;
+
+                Category cats = rep.RequirementCategories.Where(c => c.Classification == "Uniclass2015").FirstOrDefault() as Category;
+                if (cats != null)
+                {
+                    cell = detailsWorkSheet.Cells[rowIndex, colIndex];
+                    cell.Value = cats.Classification;
+                    SetDetailSheetHeadingStyles(cell, true, true, false);
+
+                    cell = detailsWorkSheet.Cells[rowIndex, colIndex + 1];
+                    cell.Value = cats.Code;
+                    SetDetailSheetHeadingStyles(cell, false, false, false);
+
+                    cell = detailsWorkSheet.Cells[rowIndex, colIndex + 2];
+                    cell.Value = cats.Description;
+                    SetDetailSheetHeadingStyles(cell, false, false, false);
+
+                    rowIndex += 2;
+                    SetColumnWidths(detailsWorkSheet);
+                }
+
+                rowIndex++;
                 var table = rep.AttributesGrid;
-                WriteReportToPage(detailsWorkSheet, ref rowIndex, ref colIndex, table, workSheetHeader);
+                WriteReportToPage(detailsWorkSheet, ref rowIndex, ref colIndex, table, null, false);
                 return true;
             }
             catch (Exception e)
@@ -289,6 +329,19 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             }
         }
 
+        private void SetDetailSheetHeadingStyles(ExcelRange cell, bool purple, bool bold, bool greyBackround)
+        {
+            if(purple) cell.Style.Font.Color.SetColor(NbsPurple());
+            
+            if (bold) cell.Style.Font.Bold = true;
+
+            if (greyBackround)
+            {
+                cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                cell.Style.Fill.BackgroundColor.SetColor(LightGrey());
+            }
+
+        }
 
         private bool CreateDetailSheet(ExcelPackage excelPackageIn, TwoLevelRequirementPointer<Zone, Space> requirementPointer, string sheetName)
         {
@@ -308,7 +361,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 rep.PrepareReport();
 
                 var table = rep.AttributesGrid;
-                WriteReportToPage(detailsWorkSheet, ref rowIndex, ref colIndex, table, workSheetHeader);
+                WriteReportToPage(detailsWorkSheet, ref rowIndex, ref colIndex, table, workSheetHeader, true);
                 return true;
             }
             catch (Exception e)
@@ -358,7 +411,8 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         return result;
         }
 
-        private void WriteReportToPage(ExcelWorksheet excelWorkSheet, ref int rowIndex, ref int colIndex, DataTable report, string reportTitle)
+
+        private void WriteReportToPage(ExcelWorksheet excelWorkSheet, ref int rowIndex, ref int colIndex, DataTable report, string reportTitle, bool setColumnWidths)
         {           
             // Output report data
             if (report.Rows.Count > 0)
@@ -380,7 +434,10 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                 //Creating Headings
                 foreach (DataColumn dataCol in report.Columns)
                 {
-                    if (dataCol == report.Columns[0]) continue;
+                    if (ExcludeFromReport(excelWorkSheet, dataCol)) continue;
+
+
+                    if (dataCol.AutoIncrement) continue;
 
                     var cell = excelWorkSheet.Cells[rowIndex, col];
 
@@ -389,17 +446,20 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                     FormatTableHeaderCell(cell);
 
                     col++;
+                        
                 }
 
+                rowIndex++;
                 // Reset column index
                 col = colIndex;
 
-                int fromRow = rowIndex + 1;
+                int fromRow = rowIndex;
+                int toCol = 0;
 
                 foreach (DataRow row in report.Rows)
                 {
                     //excelRow = summaryPage.Row(startingRow);
-                    rowIndex++;
+                    
                     col = 1;
 
                     if (reportTitle == "Asset types report")
@@ -413,52 +473,84 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                     }
 
                     var writer = new ExcelCellVisualValue(excelWorkSheet);
-                    foreach (DataColumn tCol in report.Columns)
+                    foreach (DataColumn dataCol in report.Columns)
                     {
-                        if (tCol.AutoIncrement)
+                        if (ExcludeFromReport(excelWorkSheet, dataCol)) continue;
+
+                        if (dataCol.AutoIncrement)
                             continue;
                         col++;
-                        if (row[tCol] == DBNull.Value)
+                        toCol = col;
+                        if (row[dataCol] == DBNull.Value)
                             continue;
                         ExcelRange cell = excelWorkSheet.Cells[rowIndex, col];
 
                         // ReSharper disable once CanBeReplacedWithTryCastAndCheckForNull
-                        if (row[tCol] is IVisualValue)
+                        if (row[dataCol] is IVisualValue)
                         {
-                            writer.SetCell(cell, (IVisualValue)row[tCol]);
+                            writer.SetCell(cell, (IVisualValue)row[dataCol]);
                         }
                         else
                         {
-                            switch (tCol.DataType.Name)
+                            switch (dataCol.DataType.Name)
                             {
                                 case "String":
-                                    cell.Value = (string)row[tCol];
+                                    cell.Value = (string)row[dataCol];
                                     break;
                                 case "Int32":
-                                    cell.Value = (Convert.ToInt32(row[tCol]));
+                                    cell.Value = (Convert.ToInt32(row[dataCol]));
                                     break;
                                 default:
-                                    cell.Value = ((string)row[tCol]);
+                                    cell.Value = ((string)row[dataCol]);
                                     break;
                             }
                         }
+                        
                     }
+                    rowIndex++;
                 }
 
-                int toRow = rowIndex;
-                int toCol = report.Columns.Count;
+                int toRow = rowIndex -1;
+                
 
                 FormatTableCellBorders(excelWorkSheet, fromRow, colIndex, toRow, toCol);
                 rowIndex += 3;
 
-                SetColumnWidths(excelWorkSheet);
+                if (setColumnWidths) SetColumnWidths(excelWorkSheet);
             }
+        }
+
+        private bool ExcludeFromReport(ExcelWorksheet excelWorkSheet, DataColumn dataCol)
+        {
+            switch (excelWorkSheet.Name)
+            {
+                case "Summary":
+                    if (dataCol.ColumnName == "DPoW_MatchingCode")
+                        return true;
+                    break;
+                case "Documents":
+                    if (dataCol.ColumnName == "DocumentCodeOrdinal" ||
+                        dataCol.ColumnName == "LastModified" ||
+                        dataCol.ColumnName == "RefRequirementExternalSystem" ||
+                        dataCol.ColumnName == "RefRequirementExternalId")
+                        return true;
+                    break;
+                default:
+                    if (dataCol.ColumnName == "DPoW_AssetTypeExternalSystem" ||
+                        dataCol.ColumnName == "DPoW_AssetTypeExternalID" ||
+                        dataCol.ColumnName == "DPoW_AssetExternalSystem" ||
+                        dataCol.ColumnName == "DPoW_AssetExternalID")
+                        return true;
+                    break;
+            }
+
+            return false;
         }
 
         private void FormatTableHeaderCell(ExcelRange cell)
         {
             cell.Style.Fill.PatternType = ExcelFillStyle.Solid;
-            cell.Style.Fill.BackgroundColor.SetColor(Color.FromArgb(243, 245, 244));
+            cell.Style.Fill.BackgroundColor.SetColor(LightGrey());
 
             //Set borders.
             cell.Style.Border.Bottom.Style = ExcelBorderStyle.Thick;
@@ -516,10 +608,19 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         private void AddWorkSheetHeader(ExcelWorksheet workSheetIn, ref int rowIndexIn, int colIndexIn, string headerIn, float fontSizeIn)
         {
             workSheetIn.Cells[rowIndexIn, colIndexIn].Value = headerIn;
-            workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Color.SetColor(Color.FromArgb(89, 43, 95));
+            workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Color.SetColor(NbsPurple());
             workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Size = fontSizeIn;
             workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Name = "Azo Sans";
             workSheetIn.Cells[rowIndexIn, colIndexIn].Style.Font.Bold = true;
+        }
+
+        private Color NbsPurple()
+        {
+            return Color.FromArgb(89, 43, 95);
+        }
+        private Color LightGrey()
+        {
+            return Color.FromArgb(243, 245, 244);
         }
 
         private void AddImageToWorksheet(ExcelWorksheet workSheetIn, int colIndexIn, int rowIndexIn, Image image)

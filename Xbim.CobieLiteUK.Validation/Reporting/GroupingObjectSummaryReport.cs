@@ -152,7 +152,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             workCol.AutoIncrement = true;
 
             retTable.Columns.Add(new DataColumn("DPoW_mainClassification", typeof(String)) { Caption = mainClassification + " code" });
-            retTable.Columns.Add(new DataColumn("DPoW_mainClassificationDescription", typeof(String)) { Caption = mainClassification });
+            retTable.Columns.Add(new DataColumn("DPoW_mainClassificationDescription", typeof(String)) { Caption = mainClassification + " title" });
             // retTable.Columns.Add("Matching classification", typeof (String));
             retTable.Columns.Add(new DataColumn("DPoW_MatchingCode", typeof(String)) { Caption = "Matching code" });
             retTable.Columns.Add(new DataColumn("DPoW_Submitted", typeof(int)) { Caption = "No. Submitted" });
