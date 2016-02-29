@@ -71,6 +71,9 @@
     <None Include="RIBAETestFiles\001 BTK Sample.ifc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="RIBAETestFiles\001 BTK Sample.xlsx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="RIBAETestFiles\001 Hello Wall.ifc">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
