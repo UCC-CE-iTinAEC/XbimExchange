@@ -88,10 +88,11 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
             return Create(facility, filename, format);
         }
 
-        //private List<KeyValuePair<string, string>> LinksToDetailsSheets = new List<KeyValuePair<string, string>>();
+        /// <summary>
+        /// Used to create links to details reports, before the reports are created
+        /// </summary>
         private Dictionary<string, string> LinksToDetailsSheets = new Dictionary<string, string>();
 
-        // ##### EPPlus START ########
        /// <summary>
        /// 
        /// </summary>
