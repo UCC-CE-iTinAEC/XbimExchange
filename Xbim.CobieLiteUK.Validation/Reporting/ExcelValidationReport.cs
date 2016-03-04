@@ -91,7 +91,7 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
         /// <summary>
         /// Used to create links to details reports, before the reports are created
         /// </summary>
-        private Dictionary<string, string> LinksToDetailsSheets = new Dictionary<string, string>();
+        private Dictionary<string, string> linksToDetailsSheets = new Dictionary<string, string>();
 
        /// <summary>
        /// 
@@ -110,19 +110,33 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
 
 
                     var facReport = new FacilityReport(facility);
-                    var iRunningWorkBook = 1;
+
+                    int iRunningWorkBook = 1;
+                    string classification = @"Uniclass2015";
                     foreach (var assetType in facReport.AssetRequirementGroups)
                     {
                         // only report items with any assets submitted (a different report should probably be provided otherwise)
                         if (assetType.GetSubmittedAssetsCount() < 1)
                             continue;
 
-                        var firstOrDefault = assetType.RequirementCategories.FirstOrDefault(cat => cat.Classification == @"Uniclass2015");
+                        Category firstOrDefault = assetType.RequirementCategories.FirstOrDefault(cat => cat.Classification == classification);
                         if (firstOrDefault == null)
                             continue;
-                        var tName = firstOrDefault.Code;
-                        var validName = String.Format("{0} {1}", iRunningWorkBook++, CreateSafeSheetName(tName));
-                        LinksToDetailsSheets.Add(tName, validName);
+                        string tName = firstOrDefault.Code;
+                        string validName = String.Format("{0} {1}", iRunningWorkBook++, CreateSafeSheetName(tName));
+                        linksToDetailsSheets.Add(tName, validName);
+                    }
+                    foreach (var zoneGroup in facReport.ZoneRequirementGroups)
+                    {
+                        // only report items with any assets submitted (a different report should probably be provided otherwise)
+                        if (zoneGroup.GetSubmittedAssetsCount() < 1)
+                            continue;
+                        Category firstOrDefault = zoneGroup.RequirementCategories.FirstOrDefault(cat => cat.Classification == classification);
+                        if (firstOrDefault == null)
+                            continue;
+                        string tName = firstOrDefault.Code;
+                        string validName = String.Format("{0} {1}", iRunningWorkBook++, CreateSafeSheetName(tName));
+                        linksToDetailsSheets.Add(tName, validName);
                     }
 
 
@@ -135,44 +149,41 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
                             return false;
                     }
 
-                    iRunningWorkBook = 1;
                     foreach (var assetType in facReport.AssetRequirementGroups)
                     {
                         // only report items with any assets submitted (a different report should probably be provided otherwise)
                         if (assetType.GetSubmittedAssetsCount() < 1)
                             continue;
 
-                        var firstOrDefault = assetType.RequirementCategories.FirstOrDefault(cat => cat.Classification == @"Uniclass2015");
+                        Category firstOrDefault = assetType.RequirementCategories.FirstOrDefault(cat => cat.Classification == classification);
                         if (firstOrDefault == null)
                             continue;
                         var tName = firstOrDefault.Code;
-
-                        var validName = String.Format("{0} {1}", iRunningWorkBook++, CreateSafeSheetName(tName));
+                        
+                        string validName;
+                        linksToDetailsSheets.TryGetValue(tName, out validName);
 
                         if (!CreateDetailSheet(excelPackage, assetType, validName))
                             return false;
                     }
-
                     // reports on Zones details
-
                     // ReSharper disable once LoopCanBeConvertedToQuery // might restore once code is stable
                     foreach (var zoneGroup in facReport.ZoneRequirementGroups)
                     {
                         // only report items with any assets submitted (a different report should probably be provided otherwise)
                         if (zoneGroup.GetSubmittedAssetsCount() < 1)
                             continue;
-                        var firstOrDefault = zoneGroup.RequirementCategories.FirstOrDefault(cat => cat.Classification == @"Uniclass2015");
+                        Category firstOrDefault = zoneGroup.RequirementCategories.FirstOrDefault(cat => cat.Classification == classification);
                         if (firstOrDefault == null)
                             continue;
                         var tName = firstOrDefault.Code;
-                        var validName = String.Format("{0} {1}", iRunningWorkBook++, CreateSafeSheetName(tName));
+
+                        string validName;
+                        linksToDetailsSheets.TryGetValue(tName, out validName);
 
                         if (!CreateDetailSheet(excelPackage, zoneGroup, validName))
                             return false;
-                        //UNCOMMENT
                     }
-
-
                     excelPackage.SaveAs(destinationStream);
                 }
             }
@@ -464,10 +475,10 @@ namespace Xbim.CobieLiteUK.Validation.Reporting
 
                     if (reportTitle == "Asset types report")
                     {
-                        if (LinksToDetailsSheets.ContainsKey((string)row[col]))
+                        if (linksToDetailsSheets.ContainsKey((string)row[col]))
                         {
                             string sheetName;
-                            LinksToDetailsSheets.TryGetValue((string)row[col], out sheetName);
+                            linksToDetailsSheets.TryGetValue((string)row[col], out sheetName);
                             SetHyperlinkToWorksheet(excelWorkSheet.Cells[rowIndex, colIndex], sheetName, "A1", (string)row[col]);
                         }
                     }
