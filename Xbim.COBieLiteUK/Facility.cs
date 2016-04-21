@@ -464,11 +464,9 @@ namespace Xbim.COBieLiteUK
 
         #region Writing COBie Spreadsheet
 
-        public void WriteCobie(Stream stream, ExcelTypeEnum type, out string message,
-            string version = "UK2012", bool useTemplate = true)
+        public void WriteCobie(Stream stream, ExcelTypeEnum type, out string message, string version = "UK2012", Stream templateStream = null)
         {
-            Stream templateStream = null;
-            if (useTemplate)
+            if (templateStream == null)
             {
                 var templateName = version + (type == ExcelTypeEnum.XLS ? ".xls" : ".xlsx");
                 templateStream =
@@ -523,7 +521,7 @@ namespace Xbim.COBieLiteUK
             workbook.Write(stream);
         }
 
-        public void WriteCobie(string path, out string message, string version = "UK2012", bool useTemplate = true)
+        public void WriteCobie(string path, out string message, string version = "UK2012", Stream template = null)
         {
             if (path == null) throw new ArgumentNullException("path");
             var ext = Path.GetExtension(path).ToLower().Trim('.');
@@ -537,7 +535,7 @@ namespace Xbim.COBieLiteUK
             using (var file = File.Create(path))
             {
                 var type = ext == "xlsx" ? ExcelTypeEnum.XLSX : ExcelTypeEnum.XLS;
-                WriteCobie(file, type, out message, version, useTemplate);
+                WriteCobie(file, type, out message, version, template);
                 file.Close();
             }
         }

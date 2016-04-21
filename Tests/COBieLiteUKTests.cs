@@ -627,7 +627,7 @@ namespace Tests
         {
             string msg;
             var facility = Facility.ReadCobie("OBN1-COBie-UK-2014.xlsx", out msg);
-            facility.WriteCobie("..\\..\\OBN1-COBie-UK-2014_plain.xlsx", out msg, "UK2012", false);
+            facility.WriteCobie("..\\..\\OBN1-COBie-UK-2014_plain.xlsx", out msg, "UK2012");
         }
 
         [TestMethod]
@@ -773,7 +773,7 @@ namespace Tests
 
                         string msg;
                         facilityType.WriteJson(jsonFile, true);
-                        facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012", true);
+                        facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012");
 
 
                         break;
@@ -803,7 +803,7 @@ namespace Tests
 
                     string msg;
                     facilityType.WriteJson(jsonFile, true);
-                    facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012", true);
+                    facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012");
 
 
                     break;
@@ -833,7 +833,7 @@ namespace Tests
 
                     string msg;
                     facilityType.WriteJson("..\\..\\" + jsonFile, true);
-                    facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012", true);
+                    facilityType.WriteCobie("..\\..\\" + System.IO.Path.ChangeExtension(ifcTestFile, ".xlsx"), out msg, "UK2012");
 
 
                     break;
